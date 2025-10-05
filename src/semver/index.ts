@@ -1,114 +1,53 @@
-import { SemVer, BumpType } from '../adapters/core.js';
+import * as semver from 'semver';
+import { SemVer } from 'semver';
+import { BumpType } from '../adapters/core.js';
 
 /**
- * Parse a semantic version string into a SemVer object
+ * Parse a semantic version string into a SemVer object using node-semver
  */
 export function parseSemVer(versionString: string): SemVer {
-  // Remove leading 'v' if present
-  const cleanVersion = versionString.replace(/^v/, '');
+  const parsed = semver.parse(versionString);
   
-  // Match semantic version pattern
-  const match = cleanVersion.match(/^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+(.+))?$/);
-  
-  if (!match) {
+  if (!parsed) {
     throw new Error(`Invalid semantic version: ${versionString}`);
   }
 
-  return {
-    major: parseInt(match[1], 10),
-    minor: parseInt(match[2], 10),
-    patch: parseInt(match[3], 10),
-    prerelease: match[4],
-    build: match[5],
-  };
+  return parsed;
 }
 
 /**
  * Convert a SemVer object to a string
  */
 export function formatSemVer(version: SemVer): string {
-  let result = `${version.major}.${version.minor}.${version.patch}`;
-  
-  if (version.prerelease) {
-    result += `-${version.prerelease}`;
-  }
-  
-  if (version.build) {
-    result += `+${version.build}`;
-  }
-  
-  return result;
+  return version.raw;
 }
 
 /**
- * Compare two semantic versions
+ * Compare two semantic versions using node-semver
  * Returns -1 if a < b, 0 if a === b, 1 if a > b
  */
 export function compareSemVer(a: SemVer, b: SemVer): number {
-  // Compare major, minor, patch
-  if (a.major !== b.major) {
-    return a.major - b.major;
-  }
-  
-  if (a.minor !== b.minor) {
-    return a.minor - b.minor;
-  }
-  
-  if (a.patch !== b.patch) {
-    return a.patch - b.patch;
-  }
-  
-  // Handle prerelease versions
-  if (a.prerelease && !b.prerelease) {
-    return -1; // a < b (prerelease is less than release)
-  }
-  
-  if (!a.prerelease && b.prerelease) {
-    return 1; // a > b
-  }
-  
-  if (a.prerelease && b.prerelease) {
-    return a.prerelease.localeCompare(b.prerelease);
-  }
-  
-  return 0; // Equal
+  return semver.compare(a, b);
 }
 
 /**
- * Bump a semantic version by the specified type
+ * Bump a semantic version based on the bump type using node-semver
  */
 export function bumpSemVer(version: SemVer, bumpType: BumpType): SemVer {
   if (bumpType === 'none') {
-    return { ...version };
+    return version;
   }
 
-  const newVersion: SemVer = {
-    major: version.major,
-    minor: version.minor,
-    patch: version.patch,
-    // Clear prerelease and build metadata on bump
-  };
-
-  switch (bumpType) {
-    case 'major':
-      newVersion.major += 1;
-      newVersion.minor = 0;
-      newVersion.patch = 0;
-      break;
-    case 'minor':
-      newVersion.minor += 1;
-      newVersion.patch = 0;
-      break;
-    case 'patch':
-      newVersion.patch += 1;
-      break;
+  const bumpedVersionString = semver.inc(version, bumpType);
+  if (!bumpedVersionString) {
+    throw new Error(`Failed to bump version ${version.version} with type ${bumpType}`);
   }
-
-  return newVersion;
+  
+  return parseSemVer(bumpedVersionString);
 }
 
 /**
- * Determine the bump type needed to go from version A to version B
+ * Determine the bump type between two versions using node-semver
  */
 export function getBumpType(from: SemVer, to: SemVer): BumpType {
   if (to.major > from.major) {
@@ -138,23 +77,15 @@ export function maxBumpType(bumpTypes: BumpType[]): BumpType {
 }
 
 /**
- * Check if a version is valid (all parts are non-negative integers)
+ * Check if a version string is valid using node-semver
  */
-export function isValidSemVer(version: SemVer): boolean {
-  return (
-    Number.isInteger(version.major) && version.major >= 0 &&
-    Number.isInteger(version.minor) && version.minor >= 0 &&
-    Number.isInteger(version.patch) && version.patch >= 0
-  );
+export function isValidVersionString(versionString: string): boolean {
+  return semver.valid(versionString) !== null;
 }
 
 /**
- * Create a new SemVer at 0.0.0
+ * Create initial version (0.0.0) using node-semver
  */
 export function createInitialVersion(): SemVer {
-  return {
-    major: 0,
-    minor: 0,
-    patch: 0,
-  };
+  return new SemVer('0.0.0');
 }

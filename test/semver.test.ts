@@ -4,37 +4,33 @@ import { parseSemVer, formatSemVer, bumpSemVer, compareSemVer, maxBumpType } fro
 describe('SemVer Utilities', () => {
   describe('parseSemVer', () => {
     it('should parse basic semantic versions', () => {
-      expect(parseSemVer('1.2.3')).toEqual({
-        major: 1,
-        minor: 2,
-        patch: 3,
-      });
+      const result = parseSemVer('1.2.3');
+      expect(result.major).toBe(1);
+      expect(result.minor).toBe(2);
+      expect(result.patch).toBe(3);
     });
 
     it('should parse versions with prerelease', () => {
-      expect(parseSemVer('1.2.3-alpha.1')).toEqual({
-        major: 1,
-        minor: 2,
-        patch: 3,
-        prerelease: 'alpha.1',
-      });
+      const result = parseSemVer('1.2.3-alpha.1');
+      expect(result.major).toBe(1);
+      expect(result.minor).toBe(2);
+      expect(result.patch).toBe(3);
+      expect(result.prerelease).toEqual(['alpha', 1]);
     });
 
     it('should parse versions with build metadata', () => {
-      expect(parseSemVer('1.2.3+build.1')).toEqual({
-        major: 1,
-        minor: 2,
-        patch: 3,
-        build: 'build.1',
-      });
+      const result = parseSemVer('1.2.3+build.1');
+      expect(result.major).toBe(1);
+      expect(result.minor).toBe(2);
+      expect(result.patch).toBe(3);
+      expect(result.build).toEqual(['build', '1']);
     });
 
     it('should handle versions with v prefix', () => {
-      expect(parseSemVer('v1.2.3')).toEqual({
-        major: 1,
-        minor: 2,
-        patch: 3,
-      });
+      const result = parseSemVer('v1.2.3');
+      expect(result.major).toBe(1);
+      expect(result.minor).toBe(2);
+      expect(result.patch).toBe(3);
     });
 
     it('should throw on invalid versions', () => {
@@ -45,66 +41,57 @@ describe('SemVer Utilities', () => {
 
   describe('formatSemVer', () => {
     it('should format basic versions', () => {
-      expect(formatSemVer({ major: 1, minor: 2, patch: 3 })).toBe('1.2.3');
+      const version = parseSemVer('1.2.3');
+      expect(formatSemVer(version)).toBe('1.2.3');
     });
 
     it('should format versions with prerelease', () => {
-      expect(formatSemVer({ 
-        major: 1, 
-        minor: 2, 
-        patch: 3, 
-        prerelease: 'alpha.1' 
-      })).toBe('1.2.3-alpha.1');
+      const version = parseSemVer('1.2.3-alpha.1');
+      expect(formatSemVer(version)).toBe('1.2.3-alpha.1');
     });
 
     it('should format versions with build metadata', () => {
-      expect(formatSemVer({ 
-        major: 1, 
-        minor: 2, 
-        patch: 3, 
-        build: 'build.1' 
-      })).toBe('1.2.3+build.1');
+      const version = parseSemVer('1.2.3+build.1');
+      expect(formatSemVer(version)).toBe('1.2.3+build.1');
     });
   });
 
   describe('bumpSemVer', () => {
-    const version = { major: 1, minor: 2, patch: 3 };
+    const version = parseSemVer('1.2.3');
 
     it('should bump major version', () => {
-      expect(bumpSemVer(version, 'major')).toEqual({
-        major: 2,
-        minor: 0,
-        patch: 0,
-      });
+      const bumped = bumpSemVer(version, 'major');
+      expect(bumped.major).toBe(2);
+      expect(bumped.minor).toBe(0);
+      expect(bumped.patch).toBe(0);
     });
 
     it('should bump minor version', () => {
-      expect(bumpSemVer(version, 'minor')).toEqual({
-        major: 1,
-        minor: 3,
-        patch: 0,
-      });
+      const bumped = bumpSemVer(version, 'minor');
+      expect(bumped.major).toBe(1);
+      expect(bumped.minor).toBe(3);
+      expect(bumped.patch).toBe(0);
     });
 
     it('should bump patch version', () => {
-      expect(bumpSemVer(version, 'patch')).toEqual({
-        major: 1,
-        minor: 2,
-        patch: 4,
-      });
+      const bumped = bumpSemVer(version, 'patch');
+      expect(bumped.major).toBe(1);
+      expect(bumped.minor).toBe(2);
+      expect(bumped.patch).toBe(4);
     });
 
     it('should not bump for none type', () => {
-      expect(bumpSemVer(version, 'none')).toEqual(version);
+      const bumped = bumpSemVer(version, 'none');
+      expect(bumped).toBe(version);
     });
   });
 
   describe('compareSemVer', () => {
     it('should compare versions correctly', () => {
-      const v1 = { major: 1, minor: 0, patch: 0 };
-      const v2 = { major: 1, minor: 0, patch: 1 };
-      const v3 = { major: 1, minor: 1, patch: 0 };
-      const v4 = { major: 2, minor: 0, patch: 0 };
+      const v1 = parseSemVer('1.0.0');
+      const v2 = parseSemVer('1.0.1');
+      const v3 = parseSemVer('1.1.0');
+      const v4 = parseSemVer('2.0.0');
 
       expect(compareSemVer(v1, v2)).toBeLessThan(0);
       expect(compareSemVer(v2, v1)).toBeGreaterThan(0);

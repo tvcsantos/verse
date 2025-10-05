@@ -1,10 +1,9 @@
+import * as core from '@actions/core';
 import { 
   LanguageAdapter,
-  Module,
   ModuleChange,
   BumpType,
   CommitInfo,
-  SemVer
 } from './adapters/core.js';
 import { GradleAdapter } from './adapters/gradle/gradleAdapter.js';
 import { loadConfig, getBumpTypeForCommit, getDependencyBumpType, Config } from './config/index.js';
@@ -61,16 +60,16 @@ export class MonorepoVersionRunner {
   }
 
   async run(): Promise<RunnerResult> {
-    console.log('🚀 Starting Monorepo Version Manager...');
-
+    core.info('🚀 Starting Monorepo Version Manager...');
+    
     // Load configuration
     this.config = await loadConfig(this.options.configPath, this.options.repoRoot);
-    console.log(`📋 Loaded config from ${this.options.configPath}`);
+    core.info(`📋 Loaded config from ${this.options.configPath}`);
 
-    // Validate we're on a release branch
+    // Check if we're on a release branch
     const currentBranch = getCurrentBranch({ cwd: this.options.repoRoot });
     if (!this.options.releaseBranches.includes(currentBranch)) {
-      console.log(`⚠️  Not on a release branch (current: ${currentBranch}), skipping versioning`);
+      core.info(`⚠️  Not on a release branch (current: ${currentBranch}), skipping versioning`);
       return {
         bumped: false,
         changedModules: [],
@@ -85,16 +84,16 @@ export class MonorepoVersionRunner {
     }
 
     // Discover modules
-    console.log('🔍 Discovering modules...');
+    core.info('🔍 Discovering modules...');
     const modules = await this.adapter.detectModules(this.options.repoRoot);
-    console.log(`Found ${modules.length} modules: ${modules.map(m => m.name).join(', ')}`);
+    core.info(`Found ${modules.length} modules: ${modules.map(m => m.name).join(', ')}`);
 
     // Build dependency graph
-    console.log('📊 Building dependency graph...');
+    core.info('📊 Building dependency graph...');
     const graph = await buildDependencyGraph(modules, (module) => this.adapter.getDependencies(module));
 
-    // Analyze commits for each module
-    console.log('📝 Analyzing commits...');
+    // Analyze commits since last release
+    core.info('📝 Analyzing commits...');
     const moduleCommits = new Map<string, CommitInfo[]>();
     
     for (const module of modules) {
@@ -103,7 +102,7 @@ export class MonorepoVersionRunner {
     }
 
     // Calculate version bumps for each module
-    console.log('🔢 Calculating version bumps...');
+    core.info('🔢 Calculating version bumps...');
     const moduleChanges: ModuleChange[] = [];
     
     for (const module of modules) {
@@ -126,7 +125,7 @@ export class MonorepoVersionRunner {
     }
 
     // Calculate cascade effects
-    console.log('🌊 Calculating cascade effects...');
+    core.info('🌊 Calculating cascade effects...');
     const cascadeResult = calculateCascadeEffects(
       graph,
       moduleChanges,
@@ -144,7 +143,7 @@ export class MonorepoVersionRunner {
     const allChanges = cascadeResult.changes;
     
     if (allChanges.length === 0) {
-      console.log('✨ No version changes needed');
+      core.info('✨ No version changes needed');
       return {
         bumped: false,
         changedModules: [],
@@ -153,15 +152,15 @@ export class MonorepoVersionRunner {
       };
     }
 
-    console.log(`📈 Planning to update ${allChanges.length} modules:`);
+    core.info(`📈 Planning to update ${allChanges.length} modules:`);
     for (const change of allChanges) {
       const from = formatSemVer(change.fromVersion);
       const to = formatSemVer(change.toVersion);
-      console.log(`  ${change.module.name}: ${from} → ${to} (${change.bumpType}, ${change.reason})`);
+      core.info(`  ${change.module.name}: ${from} → ${to} (${change.bumpType}, ${change.reason})`);
     }
 
     if (this.options.dryRun) {
-      console.log('🏃‍♂️ Dry run mode - no changes will be written');
+      core.info('🏃‍♂️ Dry run mode - no changes will be written');
       return {
         bumped: true,
         changedModules: allChanges.map(change => ({
@@ -178,14 +177,14 @@ export class MonorepoVersionRunner {
     }
 
     // Write new versions
-    console.log('✍️ Writing new versions...');
+    core.info('✍️ Writing new versions...');
     for (const change of allChanges) {
       await this.adapter.writeVersion(change.module, change.toVersion);
-      console.log(`  Updated ${change.module.name} to ${formatSemVer(change.toVersion)}`);
+      core.info(`  Updated ${change.module.name} to ${formatSemVer(change.toVersion)}`);
     }
 
     // Generate changelogs
-    console.log('📚 Generating changelogs...');
+    core.info('📚 Generating changelogs...');
     const changelogPaths = await generateChangelogsForModules(
       allChanges,
       async (module) => moduleCommits.get(module.name) || [],
@@ -199,22 +198,22 @@ export class MonorepoVersionRunner {
     // Create tags
     const createdTags: string[] = [];
     if (this.options.pushTags) {
-      console.log('🏷️ Creating tags...');
+      core.info('🏷️ Creating tags...');
       for (const change of allChanges) {
         const tagName = `${change.module.name}@${formatSemVer(change.toVersion)}`;
         const message = `Release ${change.module.name} v${formatSemVer(change.toVersion)}`;
         
         createTag(tagName, message, { cwd: this.options.repoRoot });
         createdTags.push(tagName);
-        console.log(`  Created tag: ${tagName}`);
+        core.info(`  Created tag: ${tagName}`);
       }
 
       // Push tags
-      console.log('📤 Pushing tags...');
+      core.info('📤 Pushing tags...');
       pushTags({ cwd: this.options.repoRoot });
     }
 
-    console.log('✅ Version management completed successfully!');
+    core.info('✅ Version management completed successfully!');
 
     return {
       bumped: true,

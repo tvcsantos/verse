@@ -1,4 +1,5 @@
 import { Module, DependencyRef, ModuleChange, BumpType } from '../adapters/core.js';
+import { parseSemVer } from '../semver/index.js';
 
 export interface DependencyGraph {
   modules: Module[];
@@ -34,11 +35,9 @@ export function buildDependencyGraph(
 
       // Build reverse dependencies (dependents)
       for (const dep of moduleDeps) {
-        if (dep.type === 'project') {
-          const depDependents = dependents.get(dep.name) || [];
-          depDependents.push(module.name);
-          dependents.set(dep.name, depDependents);
-        }
+        const depDependents = dependents.get(dep.name) || [];
+        depDependents.push(module.name);
+        dependents.set(dep.name, depDependents);
       }
     }
 
@@ -73,7 +72,7 @@ export function topologicalSort(graph: DependencyGraph): Module[] {
     // Visit dependencies first
     const deps = graph.dependencies.get(moduleName) || [];
     for (const dep of deps) {
-      if (dep.type === 'project' && moduleMap.has(dep.name)) {
+      if (moduleMap.has(dep.name)) {
         visit(dep.name);
       }
     }
@@ -151,8 +150,8 @@ export function calculateCascadeEffects(
         // Create new cascade change
         const cascadeChange: ModuleChange = {
           module: dependentModule,
-          fromVersion: { major: 0, minor: 0, patch: 0 }, // Will be filled in by caller
-          toVersion: { major: 0, minor: 0, patch: 0 }, // Will be filled in by caller
+          fromVersion: parseSemVer('0.0.0'), // Will be filled in by caller
+          toVersion: parseSemVer('0.0.0'), // Will be filled in by caller
           bumpType: requiredBump,
           reason: 'cascade',
         };
@@ -210,7 +209,7 @@ export function findAllDependencies(
 
   visited.add(moduleName);
   const directDeps = graph.dependencies.get(moduleName) || [];
-  const projectDeps = directDeps.filter(dep => dep.type === 'project').map(dep => dep.name);
+  const projectDeps = directDeps.map(dep => dep.name);
   const allDeps = [...projectDeps];
 
   for (const dep of projectDeps) {

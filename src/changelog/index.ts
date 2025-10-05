@@ -1,7 +1,8 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { Module, ModuleChange, CommitInfo, SemVer } from '../adapters/core.js';
+import { Module, ModuleChange, CommitInfo } from '../adapters/core.js';
 import { formatSemVer } from '../semver/index.js';
+import { SemVer } from 'semver';
 
 export interface ChangelogEntry {
   module: Module;

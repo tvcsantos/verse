@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Project Hierarchy Dependencies",
+  "description": "Schema for Gradle project hierarchy dependencies output",
+  "type": "object",
+  "patternProperties": {
+    ".*": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Absolute file system path to the project directory"
+        },
+        "affectedSubprojects": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": ".*"
+          },
+          "description": "List of subproject paths that are affected when this project changes",
+          "uniqueItems": true
+        }
+      },
+      "required": ["path", "affectedSubprojects"],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      ":": {
+        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter",
+        "affectedSubprojects": [":base", ":spring", ":spring:core", ":spring:servlet"]
+      },
+      ":base": {
+        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/base",
+        "affectedSubprojects": []
+      },
+      ":spring": {
+        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring",
+        "affectedSubprojects": [":spring:core", ":spring:servlet"]
+      },
+      ":spring:core": {
+        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring/core",
+        "affectedSubprojects": []
+      },
+      ":spring:servlet": {
+        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring/servlet",
+        "affectedSubprojects": []
+      }
+    }
+  ]
+}
+

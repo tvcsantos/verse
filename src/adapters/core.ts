@@ -1,10 +1,4 @@
-export interface SemVer {
-  major: number;
-  minor: number;
-  patch: number;
-  prerelease?: string;
-  build?: string;
-}
+import { SemVer } from "semver";
 
 export interface Module {
   name: string;
@@ -15,9 +9,6 @@ export interface Module {
 
 export interface DependencyRef {
   name: string;
-  type: 'project' | 'external';
-  constraint?: string;
-  scope?: 'implementation' | 'api' | 'testImplementation' | 'compileOnly' | 'runtimeOnly';
 }
 
 export interface ModuleChange {

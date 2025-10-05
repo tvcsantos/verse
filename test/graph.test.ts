@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildDependencyGraph, topologicalSort, calculateCascadeEffects } from '../src/graph/index.js';
-import { Module, DependencyRef, ModuleChange } from '../src/adapters/core.js';
+import { Module, DependencyRef, ModuleChange, BumpType } from '../src/adapters/core.js';
+import { parseSemVer } from '../src/semver/index.js';
 
 describe('Dependency Graph', () => {
   const modules: Module[] = [
@@ -14,12 +15,12 @@ describe('Dependency Graph', () => {
     const deps: Record<string, DependencyRef[]> = {
       root: [],
       core: [
-        { name: 'utils', type: 'project', scope: 'implementation' },
+        { name: 'utils' },
       ],
       utils: [],
       api: [
-        { name: 'core', type: 'project', scope: 'implementation' },
-        { name: 'utils', type: 'project', scope: 'implementation' },
+        { name: 'core' },
+        { name: 'utils' },
       ],
     };
     return deps[module.name] || [];
@@ -31,8 +32,8 @@ describe('Dependency Graph', () => {
       
       expect(graph.modules).toEqual(modules);
       expect(graph.dependencies.get('api')).toEqual([
-        { name: 'core', type: 'project', scope: 'implementation' },
-        { name: 'utils', type: 'project', scope: 'implementation' },
+        { name: 'core' },
+        { name: 'utils' },
       ]);
       expect(graph.dependents.get('utils')).toEqual(['core', 'api']);
     });
@@ -61,14 +62,14 @@ describe('Dependency Graph', () => {
       const initialChanges: ModuleChange[] = [
         {
           module: modules.find(m => m.name === 'utils')!,
-          fromVersion: { major: 1, minor: 0, patch: 0 },
-          toVersion: { major: 1, minor: 1, patch: 0 },
+          fromVersion: parseSemVer('1.0.0'),
+          toVersion: parseSemVer('1.1.0'),
           bumpType: 'minor',
           reason: 'commits',
         },
       ];
 
-      const getDependencyBumpType = () => 'patch';
+      const getDependencyBumpType = (): BumpType => 'patch';
       
       const result = calculateCascadeEffects(graph, initialChanges, getDependencyBumpType);
       

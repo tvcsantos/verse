@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import * as core from '@actions/core';
 import { BumpType } from '../adapters/core.js';
 
 export interface Config {
@@ -8,7 +9,6 @@ export interface Config {
   dependencyRules: DependencyRules;
   gradle?: GradleConfig;
   nodejs?: NodeJSConfig;
-  python?: PythonConfig;
 }
 
 export interface DependencyRules {
@@ -19,19 +19,12 @@ export interface DependencyRules {
 }
 
 export interface GradleConfig {
-  versionSource: ('gradle.properties' | 'build.gradle' | 'build.gradle.kts' | 'version-catalog')[];
-  updateVersionCatalog: boolean;
-  versionCatalogPath?: string;
+  versionSource: ('gradle.properties')[];
 }
 
 export interface NodeJSConfig {
   versionSource: ('package.json')[];
   updatePackageLock: boolean;
-}
-
-export interface PythonConfig {
-  versionSource: ('pyproject.toml' | 'setup.py' | '__init__.py')[];
-  updateRequirements: boolean;
 }
 
 const DEFAULT_CONFIG: Config = {
@@ -55,8 +48,7 @@ const DEFAULT_CONFIG: Config = {
     strictCompatibility: false,
   },
   gradle: {
-    versionSource: ['version-catalog', 'gradle.properties', 'build.gradle.kts'],
-    updateVersionCatalog: true,
+    versionSource: ['gradle.properties'],
   },
 };
 
@@ -73,7 +65,7 @@ export async function loadConfig(configPath: string, repoRoot: string): Promise<
     return mergeConfig(DEFAULT_CONFIG, userConfig);
   } catch (error) {
     if (error instanceof Error && 'code' in error && (error as any).code === 'ENOENT') {
-      console.log(`No config file found at ${configPath}, using defaults`);
+      core.info(`No config file found at ${configPath}, using defaults`);
       return DEFAULT_CONFIG;
     }
     
@@ -100,7 +92,6 @@ function mergeConfig(defaultConfig: Config, userConfig: Partial<Config>): Config
       ...userConfig.gradle,
     } : defaultConfig.gradle,
     nodejs: userConfig.nodejs,
-    python: userConfig.python,
   };
 }
 
@@ -192,7 +183,7 @@ export async function createDefaultConfig(configPath: string, repoRoot: string):
   
   try {
     await fs.writeFile(fullPath, configContent, 'utf8');
-    console.log(`Created default config file at ${configPath}`);
+    core.info(`Created default config file at ${configPath}`);
   } catch (error) {
     throw new Error(`Failed to create config file at ${configPath}: ${error}`);
   }
