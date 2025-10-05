@@ -1,0 +1,46 @@
+name: 'Monorepo Version Manager'
+description: 'Manages semantic versions for projects in a monorepo based on Conventional Commits'
+author: 'Your Organization'
+inputs:
+  release-branches:
+    description: 'Comma-separated list of release branches'
+    required: false
+    default: 'main,master'
+  dry-run:
+    description: 'Run without writing or pushing'
+    required: false
+    default: 'false'
+  fetch-depth:
+    description: 'Git fetch depth (set 0 for full history)'
+    required: false
+    default: '0'
+  adapter:
+    description: 'Language adapter (e.g., gradle)'
+    required: false
+    default: 'gradle'
+  config-path:
+    description: 'Path to config file'
+    required: false
+    default: '.versioningrc.json'
+  create-releases:
+    description: 'Create GitHub Releases'
+    required: false
+    default: 'false'
+  push-tags:
+    description: 'Push tags to origin'
+    required: false
+    default: 'true'
+outputs:
+  bumped:
+    description: 'Whether any module was bumped'
+  changed-modules:
+    description: 'JSON array of { name, from, to }'
+  created-tags:
+    description: 'List of created tags'
+  changelog-paths:
+    description: 'Generated changelog files'
+  manifest-path:
+    description: 'Manifest with current versions'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
