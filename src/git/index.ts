@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { CommitInfo, BumpType } from '../adapters/core.js';
+import { CommitInfo } from '../adapters/core.js';
 import * as conventionalCommitsParser from 'conventional-commits-parser';
 
 export interface GitTag {

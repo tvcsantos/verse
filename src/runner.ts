@@ -3,7 +3,7 @@ import {
   LanguageAdapter,
   ModuleChange,
   BumpType,
-  CommitInfo,
+  CommitInfo
 } from './adapters/core.js';
 import { GradleAdapter } from './adapters/gradle/gradleAdapter.js';
 import { loadConfig, getBumpTypeForCommit, getDependencyBumpType, Config } from './config/index.js';
@@ -16,8 +16,7 @@ import {
 } from './git/index.js';
 import { 
   buildDependencyGraph,
-  calculateCascadeEffects,
-  topologicalSort
+  calculateCascadeEffects
 } from './graph/index.js';
 import { bumpSemVer, maxBumpType, formatSemVer } from './semver/index.js';
 import { 

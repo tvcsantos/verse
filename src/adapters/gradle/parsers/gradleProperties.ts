@@ -1,4 +1,3 @@
-import { promises as fs } from 'fs';
 import { join } from 'path';
 import { formatSemVer } from '../../../semver/index.js';
 import { parseVersionProperties, upsertProperty } from '../../../utils/properties.js';
