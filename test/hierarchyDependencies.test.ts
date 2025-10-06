@@ -1,41 +1,47 @@
 import { describe, it, expect } from 'vitest';
 import { 
   parseHierarchyStructure, 
-  getDependentsOf, 
-  getDependenciesOf, 
-  getProjectPath
 } from '../src/adapters/gradle/parsers/hierarchyDependencies.js';
 import { ProjectHierarchy } from '../src/adapters/hierarchy.js';
 
 describe('Hierarchy Dependencies Parser', () => {
   const sampleHierarchy: ProjectHierarchy = {
     ":": {
-      path: "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter",
-      affectedSubprojects: [":base", ":spring", ":spring:core", ":spring:servlet"]
+      path: ".",
+      affectedSubprojects: [":base", ":spring", ":spring:core", ":spring:servlet"],
+      version: "1.0.0",
+      type: "root"
     },
     ":base": {
-      path: "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/base",
-      affectedSubprojects: []
+      path: "base",
+      affectedSubprojects: [],
+      version: "1.1.0",
+      type: "module"
     },
     ":spring": {
-      path: "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring",
-      affectedSubprojects: [":spring:core", ":spring:servlet"]
+      path: "spring",
+      affectedSubprojects: [":spring:core", ":spring:servlet"],
+      version: "2.0.0",
+      type: "module"
     },
     ":spring:core": {
-      path: "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring/core",
-      affectedSubprojects: []
+      path: "spring/core",
+      affectedSubprojects: [],
+      version: "2.1.0",
+      type: "module"
     },
     ":spring:servlet": {
-      path: "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring/servlet",
-      affectedSubprojects: []
+      path: "spring/servlet",
+      affectedSubprojects: [],
+      version: "2.2.0",
+      type: "module"
     }
   };
 
   describe('parseHierarchyStructure', () => {
     it('should parse hierarchy structure correctly', () => {
-      const result = parseHierarchyStructure(sampleHierarchy);
+      const result = parseHierarchyStructure(sampleHierarchy, '/test-repo');
       
-      expect(result.hierarchy).toBe(sampleHierarchy);
       expect(result.projectIds).toHaveLength(5);
       expect(result.projectIds).toContain(':');
       expect(result.projectIds).toContain(':base');
@@ -43,77 +49,77 @@ describe('Hierarchy Dependencies Parser', () => {
       expect(result.projectIds).toContain(':spring:core');
       expect(result.projectIds).toContain(':spring:servlet');
       expect(result.rootProject).toBe(':');
+      
+      // Verify projectMap contains correct paths
+      expect(result.projectMap.get(':')?.path).toBe('.');
+      expect(result.projectMap.get(':base')?.path).toBe('base');
+      expect(result.projectMap.get(':spring:core')?.path).toBe('spring/core');
     });
 
-    it('should build dependency relationships correctly', () => {
-      const result = parseHierarchyStructure(sampleHierarchy);
+    it('should build affected project relationships correctly', () => {
+      const result = parseHierarchyStructure(sampleHierarchy, '/test-repo');
       
-      // Root project affects 4 subprojects
-      const rootAffects = result.dependencies.filter(dep => dep.dependency === ':');
-      expect(rootAffects).toHaveLength(4);
-      expect(rootAffects.map(d => d.dependent)).toContain(':base');
-      expect(rootAffects.map(d => d.dependent)).toContain(':spring');
-      expect(rootAffects.map(d => d.dependent)).toContain(':spring:core');
-      expect(rootAffects.map(d => d.dependent)).toContain(':spring:servlet');
+      // Verify that affected projects are properly stored in the projectMap
+      // Root affects all subprojects
+      expect(result.projectMap.get(':')?.affectedProjects.has(':base')).toBe(true);
+      expect(result.projectMap.get(':')?.affectedProjects.has(':spring')).toBe(true);
+      expect(result.projectMap.get(':')?.affectedProjects.has(':spring:core')).toBe(true);
+      expect(result.projectMap.get(':')?.affectedProjects.has(':spring:servlet')).toBe(true);
       
-      // Spring project affects 2 subprojects
-      const springAffects = result.dependencies.filter(dep => dep.dependency === ':spring');
-      expect(springAffects).toHaveLength(2);
-      expect(springAffects.map(d => d.dependent)).toContain(':spring:core');
-      expect(springAffects.map(d => d.dependent)).toContain(':spring:servlet');
+      // Spring affects its subprojects
+      expect(result.projectMap.get(':spring')?.affectedProjects.has(':spring:core')).toBe(true);
+      expect(result.projectMap.get(':spring')?.affectedProjects.has(':spring:servlet')).toBe(true);
       
-      // Base has no affected subprojects
-      const baseAffects = result.dependencies.filter(dep => dep.dependency === ':base');
-      expect(baseAffects).toHaveLength(0);
+      // Leaf projects affect nothing
+      expect(result.projectMap.get(':base')?.affectedProjects.size).toBe(0);
+      expect(result.projectMap.get(':spring:core')?.affectedProjects.size).toBe(0);
+      expect(result.projectMap.get(':spring:servlet')?.affectedProjects.size).toBe(0);
     });
-  });
 
-  describe('getDependentsOf', () => {
-    it('should return projects that depend on the given project', () => {
-      const result = parseHierarchyStructure(sampleHierarchy);
+    it('should parse versions correctly from ProjectNode', () => {
+      const result = parseHierarchyStructure(sampleHierarchy, '/test-repo');
       
-      const rootDependents = getDependentsOf(result, ':');
-      expect(rootDependents).toHaveLength(4);
-      expect(rootDependents).toContain(':base');
-      expect(rootDependents).toContain(':spring');
-      expect(rootDependents).toContain(':spring:core');
-      expect(rootDependents).toContain(':spring:servlet');
-      
-      const springDependents = getDependentsOf(result, ':spring');
-      expect(springDependents).toHaveLength(2);
-      expect(springDependents).toContain(':spring:core');
-      expect(springDependents).toContain(':spring:servlet');
-      
-      const baseDependents = getDependentsOf(result, ':base');
-      expect(baseDependents).toHaveLength(0);
+      // Verify that versions are correctly parsed from the hierarchy
+      expect(result.projectMap.get(':')?.version.version).toBe('1.0.0');
+      expect(result.projectMap.get(':base')?.version.version).toBe('1.1.0');
+      expect(result.projectMap.get(':spring')?.version.version).toBe('2.0.0');
+      expect(result.projectMap.get(':spring:core')?.version.version).toBe('2.1.0');
+      expect(result.projectMap.get(':spring:servlet')?.version.version).toBe('2.2.0');
     });
-  });
 
-  describe('getDependenciesOf', () => {
-    it('should return projects that the given project depends on', () => {
-      const result = parseHierarchyStructure(sampleHierarchy);
+    it('should parse types correctly from ProjectNode', () => {
+      const result = parseHierarchyStructure(sampleHierarchy, '/test-repo');
       
-      // In the hierarchy structure, affected projects depend ON the project that affects them
-      const springCoreDeps = getDependenciesOf(result, ':spring:core');
-      expect(springCoreDeps).toContain(':');
-      expect(springCoreDeps).toContain(':spring');
+      // Verify that types are correctly parsed from the hierarchy
+      expect(result.projectMap.get(':')?.type).toBe('root');
+      expect(result.projectMap.get(':base')?.type).toBe('module');
+      expect(result.projectMap.get(':spring')?.type).toBe('module');
+      expect(result.projectMap.get(':spring:core')?.type).toBe('module');
+      expect(result.projectMap.get(':spring:servlet')?.type).toBe('module');
       
-      const baseDeps = getDependenciesOf(result, ':base');
-      expect(baseDeps).toContain(':');
-      
-      const rootDeps = getDependenciesOf(result, ':');
-      expect(rootDeps).toHaveLength(0);
+      // Verify root project detection
+      expect(result.rootProject).toBe(':');
     });
-  });
 
-  describe('getProjectPath', () => {
-    it('should return the file system path for a project', () => {
-      const result = parseHierarchyStructure(sampleHierarchy);
-      
-      expect(getProjectPath(result, ':')).toBe('/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter');
-      expect(getProjectPath(result, ':base')).toBe('/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/base');
-      expect(getProjectPath(result, ':spring:core')).toBe('/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring/core');
-      expect(getProjectPath(result, ':nonexistent')).toBeUndefined();
+    it('should throw error when no root project is found', () => {
+      const hierarchyWithoutRoot: ProjectHierarchy = {
+        ":base": {
+          path: "base",
+          affectedSubprojects: [],
+          version: "1.1.0",
+          type: "module"
+        },
+        ":spring": {
+          path: "spring",
+          affectedSubprojects: [],
+          version: "2.0.0",
+          type: "module"
+        }
+      };
+
+      expect(() => {
+        parseHierarchyStructure(hierarchyWithoutRoot, '/test-repo');
+      }).toThrow('No root project found in hierarchy. Every project hierarchy must contain exactly one project with type "root".');
     });
   });
 });

@@ -26,23 +26,30 @@ gradle.rootProject {
             hierarchyEdges
         }
 
-        val projectPathsProvider = provider {
-            val projectPaths = linkedMapOf<String, String>()
+        val projectDataProvider = provider {
+            val projectData = linkedMapOf<String, Triple<String, String, String>>()
 
             gradle.rootProject.allprojects.forEach { project ->
-                projectPaths[project.path] = project.projectDir.absolutePath
+                val relativePath = gradle.rootProject.projectDir.toPath().relativize(project.projectDir.toPath()).toString()
+                val path = if (relativePath.isEmpty()) "." else relativePath
+                val version = project.version.toString()
+                val type = if (project == gradle.rootProject) "root" else "module"
+                projectData[project.path] = Triple(path, version, type)
             }
-            projectPaths
+            projectData
         }
 
         doLast {
             val hierarchyMap = hierarchyDepsProvider.get()
-            val pathsMap = projectPathsProvider.get()
+            val projectDataMap = projectDataProvider.get()
 
             val result = hierarchyMap.toSortedMap().mapValues { (projectPath, affectedProjects) ->
+                val (path, version, type) = projectDataMap[projectPath] ?: Triple("unknown", "0.0.0", "module")
                 mapOf(
-                    "path" to (pathsMap[projectPath] ?: "unknown"),
-                    "affectedSubprojects" to affectedProjects.toSortedSet()
+                    "path" to path,
+                    "affectedSubprojects" to affectedProjects.toSortedSet(),
+                    "version" to version,
+                    "type" to type
                 )
             }
 

@@ -1,67 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { buildDependencyGraph, topologicalSort, calculateCascadeEffects } from '../src/graph/index.js';
-import { Module, DependencyRef, ModuleChange, BumpType } from '../src/adapters/core.js';
+import { calculateCascadeEffects } from '../src/graph/index.js';
+import { ModuleChange, BumpType } from '../src/adapters/core.js';
+import { HierarchyParseResult } from '../src/adapters/hierarchy.js';
 import { parseSemVer } from '../src/semver/index.js';
+import { HierarchyModuleManager } from '../src/adapters/hierarchy/hierarchyModuleManager.js';
 
-describe('Dependency Graph', () => {
-  const modules: Module[] = [
-    { id: 'root', path: '/root', relativePath: '.', type: 'root' },
-    { id: 'core', path: '/core', relativePath: 'core', type: 'module' },
-    { id: 'utils', path: '/utils', relativePath: 'utils', type: 'module' },
-    { id: 'api', path: '/api', relativePath: 'api', type: 'module' },
-  ];
-
-  const getDependencies = async (module: Module): Promise<DependencyRef[]> => {
-    const deps: Record<string, DependencyRef[]> = {
-      root: [],
-      core: [
-        { id: 'utils' },
-      ],
-      utils: [],
-      api: [
-        { id: 'core' },
-        { id: 'utils' },
-      ],
-    };
-    return deps[module.id] || [];
+describe('Cascade Effects', () => {
+  const hierarchyResult: HierarchyParseResult = {
+    projectIds: ['root', 'core', 'utils', 'api'],
+    projectMap: new Map([
+      ['root', { id: 'root', path: '.', type: 'root', affectedProjects: new Set(['core', 'utils', 'api']), version: parseSemVer('1.0.0') }],
+      ['core', { id: 'core', path: 'core', type: 'module', affectedProjects: new Set(['api']), version: parseSemVer('1.0.0') }],
+      ['utils', { id: 'utils', path: 'utils', type: 'module', affectedProjects: new Set(['core', 'api']), version: parseSemVer('1.0.0') }],
+      ['api', { id: 'api', path: 'api', type: 'module', affectedProjects: new Set(), version: parseSemVer('1.0.0') }],
+    ]),
+    rootProject: 'root',
   };
 
-  describe('buildDependencyGraph', () => {
-    it('should build correct dependency graph', async () => {
-      const graph = await buildDependencyGraph(modules, getDependencies);
-      
-      expect(graph.modules).toEqual(modules);
-      expect(graph.dependencies.get('api')).toEqual([
-        { id: 'core' },
-        { id: 'utils' },
-      ]);
-      expect(graph.dependents.get('utils')).toEqual(['core', 'api']);
-    });
-  });
-
-  describe('topologicalSort', () => {
-    it('should sort modules in dependency order', async () => {
-      const graph = await buildDependencyGraph(modules, getDependencies);
-      const sorted = topologicalSort(graph);
-      
-      const moduleNames = sorted.map(m => m.id);
-      
-      // utils should come before core and api
-      expect(moduleNames.indexOf('utils')).toBeLessThan(moduleNames.indexOf('core'));
-      expect(moduleNames.indexOf('utils')).toBeLessThan(moduleNames.indexOf('api'));
-      
-      // core should come before api
-      expect(moduleNames.indexOf('core')).toBeLessThan(moduleNames.indexOf('api'));
-    });
-  });
-
   describe('calculateCascadeEffects', () => {
-    it('should calculate cascade effects correctly', async () => {
-      const graph = await buildDependencyGraph(modules, getDependencies);
-      
+    it('should calculate cascade effects correctly', () => {
+      const utilsProjectInfo = hierarchyResult.projectMap.get('utils')!;
+
       const initialChanges: ModuleChange[] = [
         {
-          module: modules.find(m => m.id === 'utils')!,
+          module: utilsProjectInfo,
           fromVersion: parseSemVer('1.0.0'),
           toVersion: parseSemVer('1.1.0'),
           bumpType: 'minor',
@@ -69,9 +31,20 @@ describe('Dependency Graph', () => {
         },
       ];
 
+      // Mock module manager for the test
+      const mockModuleManager = {
+        getModuleInfo: (moduleId: string) => {
+          const info = hierarchyResult.projectMap.get(moduleId);
+          if (!info) {
+            throw new Error(`Module ${moduleId} not found`);
+          }
+          return info;
+        }
+      } as HierarchyModuleManager;
+
       const getDependencyBumpType = (): BumpType => 'patch';
       
-      const result = calculateCascadeEffects(graph, initialChanges, getDependencyBumpType);
+      const result = calculateCascadeEffects(mockModuleManager, initialChanges, getDependencyBumpType);
       
       // Should have cascaded to core and api
       expect(result.changes).toHaveLength(3); // utils + core + api

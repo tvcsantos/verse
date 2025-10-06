@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { parseGradleProperties, updateModuleVersionInGradleProperties, getModulePaths, getModuleVersion } from '../src/adapters/gradle/parsers/gradleProperties.js';
+import { parseGradleProperties, updateModuleVersionInGradleProperties } from '../src/adapters/gradle/parsers/gradleProperties.js';
 import { parseSemVer } from '../src/semver/index.js';
 
 // Test directory
@@ -31,39 +31,39 @@ x.y.version=3.1.0
 z.version=4.5.6
 my.module.version=1.0.0-beta.1
 `;
-      
+
       await fs.writeFile(join(testDir, 'gradle.properties'), properties);
-      
+
       const result = await parseGradleProperties(testDir);
-      
+
       expect(result.rootVersion?.major).toBe(1);
       expect(result.rootVersion?.minor).toBe(2);
       expect(result.rootVersion?.patch).toBe(3);
-      
+
       expect(result.moduleVersions).toHaveLength(5);
-      
+
       // Check root module
-      const rootModule = result.moduleVersions.find(m => m.modulePath === ':');
-      expect(rootModule?.modulePath).toBe(':');
+      const rootModule = result.moduleVersions.find(m => m.moduleId === ':');
+      expect(rootModule?.moduleId).toBe(':');
       expect(rootModule?.version.major).toBe(1);
       expect(rootModule?.version.minor).toBe(2);
       expect(rootModule?.version.patch).toBe(3);
-      
+
       // Check other modules
-      const xModule = result.moduleVersions.find(m => m.modulePath === ':x');
-      expect(xModule?.modulePath).toBe(':x');
+      const xModule = result.moduleVersions.find(m => m.moduleId === ':x');
+      expect(xModule?.moduleId).toBe(':x');
       expect(xModule?.version.major).toBe(2);
       expect(xModule?.version.minor).toBe(0);
       expect(xModule?.version.patch).toBe(0);
-      
-      const xyModule = result.moduleVersions.find(m => m.modulePath === ':x:y');
-      expect(xyModule?.modulePath).toBe(':x:y');
+
+      const xyModule = result.moduleVersions.find(m => m.moduleId === ':x:y');
+      expect(xyModule?.moduleId).toBe(':x:y');
       expect(xyModule?.version.major).toBe(3);
       expect(xyModule?.version.minor).toBe(1);
       expect(xyModule?.version.patch).toBe(0);
-      
-      const myModule = result.moduleVersions.find(m => m.modulePath === ':my:module');
-      expect(myModule?.modulePath).toBe(':my:module');
+
+      const myModule = result.moduleVersions.find(m => m.moduleId === ':my:module');
+      expect(myModule?.moduleId).toBe(':my:module');
       expect(myModule?.version.major).toBe(1);
       expect(myModule?.version.minor).toBe(0);
       expect(myModule?.version.patch).toBe(0);
@@ -72,9 +72,9 @@ my.module.version=1.0.0-beta.1
 
     it('should handle empty properties file', async () => {
       await fs.writeFile(join(testDir, 'gradle.properties'), '');
-      
+
       const result = await parseGradleProperties(testDir);
-      
+
       expect(result.rootVersion).toBeUndefined();
       expect(result.moduleVersions).toHaveLength(0);
     });
@@ -85,7 +85,7 @@ my.module.version=1.0.0-beta.1
 
     it('should throw error for invalid version format', async () => {
       await fs.writeFile(join(testDir, 'gradle.properties'), 'version=invalid-version');
-      
+
       await expect(parseGradleProperties(testDir)).rejects.toThrow('Invalid version format');
     });
   });
@@ -94,11 +94,11 @@ my.module.version=1.0.0-beta.1
     it('should update existing version', async () => {
       const properties = `version=1.0.0
 x.version=2.0.0`;
-      
+
       await fs.writeFile(join(testDir, 'gradle.properties'), properties);
-      
+
       await updateModuleVersionInGradleProperties(testDir, ':x', parseSemVer('3.1.0'));
-      
+
       const content = await fs.readFile(join(testDir, 'gradle.properties'), 'utf8');
       expect(content).toContain('x.version=3.1.0');
       expect(content).toContain('version=1.0.0'); // Should not change other versions
@@ -106,47 +106,20 @@ x.version=2.0.0`;
 
     it('should add new version property', async () => {
       const properties = `version=1.0.0`;
-      
+
       await fs.writeFile(join(testDir, 'gradle.properties'), properties);
-      
+
       await updateModuleVersionInGradleProperties(testDir, ':new:module', parseSemVer('2.0.0'));
-      
+
       const content = await fs.readFile(join(testDir, 'gradle.properties'), 'utf8');
       expect(content).toContain('new.module.version=2.0.0');
     });
 
     it('should create new file if it does not exist', async () => {
       await updateModuleVersionInGradleProperties(testDir, ':', parseSemVer('1.0.0'));
-      
+
       const content = await fs.readFile(join(testDir, 'gradle.properties'), 'utf8');
       expect(content).toBe('version=1.0.0\n');
-    });
-  });
-
-  describe('helper functions', () => {
-    beforeEach(async () => {
-      const properties = `version=1.0.0
-x.version=2.0.0
-x.y.version=3.0.0`;
-      
-      await fs.writeFile(join(testDir, 'gradle.properties'), properties);
-    });
-
-    it('should get all module paths', async () => {
-      const paths = await getModulePaths(testDir);
-      expect(paths).toEqual([':', ':x', ':x:y']);
-    });
-
-    it('should get specific module version', async () => {
-      const version = await getModuleVersion(testDir, ':x');
-      expect(version?.major).toBe(2);
-      expect(version?.minor).toBe(0);
-      expect(version?.patch).toBe(0);
-    });
-
-    it('should return undefined for non-existent module', async () => {
-      const version = await getModuleVersion(testDir, ':nonexistent');
-      expect(version).toBeUndefined();
     });
   });
 });

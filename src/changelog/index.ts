@@ -1,11 +1,12 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { Module, ModuleChange, CommitInfo } from '../adapters/core.js';
+import { ModuleChange, CommitInfo } from '../adapters/core.js';
+import { ProjectInfo } from '../adapters/hierarchy.js';
 import { formatSemVer } from '../semver/index.js';
 import { SemVer } from 'semver';
 
 export interface ChangelogEntry {
-  module: Module;
+  module: ProjectInfo;
   version: SemVer;
   date: string;
   changes: {
@@ -26,7 +27,7 @@ export interface ChangelogOptions {
  * Generate changelog for a module
  */
 export async function generateChangelog(
-  module: Module,
+  module: ProjectInfo,
   moduleChange: ModuleChange,
   commits: CommitInfo[],
   options: ChangelogOptions = {
@@ -135,11 +136,11 @@ function formatCommitLine(commit: CommitInfo, options: ChangelogOptions): string
  * Update or create CHANGELOG.md file for a module
  */
 export async function updateChangelogFile(
-  module: Module,
+  module: ProjectInfo,
   changelogContent: string,
   repoRoot: string
 ): Promise<string> {
-  const changelogPath = join(module.path, 'CHANGELOG.md');
+  const changelogPath = join(repoRoot, module.path, 'CHANGELOG.md');
 
   try {
     // Try to read existing changelog
@@ -192,7 +193,7 @@ export async function updateChangelogFile(
  */
 export async function generateChangelogsForModules(
   moduleChanges: ModuleChange[],
-  getCommitsForModule: (module: Module) => Promise<CommitInfo[]>,
+  getCommitsForModule: (module: ProjectInfo) => Promise<CommitInfo[]>,
   repoRoot: string,
   options?: ChangelogOptions
 ): Promise<string[]> {

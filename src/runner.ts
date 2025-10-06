@@ -1,11 +1,15 @@
 import * as core from '@actions/core';
 import { 
-  LanguageAdapter,
+  ModuleDetector,
   ModuleChange,
   BumpType,
-  CommitInfo
+  CommitInfo,
+  VersionManager
 } from './adapters/core.js';
-import { GradleAdapter } from './adapters/gradle/gradleAdapter.js';
+import { HierarchyModuleManager } from './adapters/hierarchy/hierarchyModuleManager.js';
+
+import { GradleModuleDetector } from './adapters/gradle/gradleAdapter.js';
+import { GradleVersionManager } from './adapters/gradle/gradleVersionManager.js';
 import { loadConfig, getBumpTypeForCommit, getDependencyBumpType, Config } from './config/index.js';
 import { 
   getCommitsSinceLastTag,
@@ -15,7 +19,6 @@ import {
   isWorkingDirectoryClean
 } from './git/index.js';
 import { 
-  buildDependencyGraph,
   calculateCascadeEffects
 } from './graph/index.js';
 import { bumpSemVer, maxBumpType, formatSemVer } from './semver/index.js';
@@ -49,13 +52,15 @@ export interface RunnerResult {
 }
 
 export class MonorepoVersionRunner {
-  private adapter: LanguageAdapter;
+  private detector: ModuleDetector;
+  private hierarchyManager!: HierarchyModuleManager; // Will be initialized in run()
+  private versionManager!: VersionManager; // Will be initialized in run()
   private config!: Config; // Will be initialized in run()
   private options: RunnerOptions;
 
   constructor(options: RunnerOptions) {
     this.options = options;
-    this.adapter = this.createAdapter(options.adapter, options.repoRoot);
+    this.detector = this.createDetector(options.adapter, options.repoRoot);
   }
 
   async run(): Promise<RunnerResult> {
@@ -82,31 +87,33 @@ export class MonorepoVersionRunner {
       throw new Error('Working directory is not clean. Please commit or stash your changes.');
     }
 
-    // Discover modules
+    // Discover modules and get hierarchy manager
     core.info('🔍 Discovering modules...');
-    const modules = await this.adapter.detectModules(this.options.repoRoot);
-    core.info(`Found ${modules.length} modules: ${modules.map(m => m.id).join(', ')}`);
-
-    // Build dependency graph
-    core.info('📊 Building dependency graph...');
-    const graph = await buildDependencyGraph(modules, (module) => this.adapter.getDependencies(module));
+    this.hierarchyManager = await this.detector.detect();
+    
+    // Create version manager  
+    this.versionManager = this.createVersionManager(this.options.adapter, this.options.repoRoot, this.hierarchyManager);
+    
+    // Log discovered modules through hierarchy manager
+    const moduleIds = this.hierarchyManager.getModuleIds();
+    core.info(`Found ${moduleIds.length} modules: ${moduleIds.join(', ')}`);
 
     // Analyze commits since last release
     core.info('📝 Analyzing commits...');
     const moduleCommits = new Map<string, CommitInfo[]>();
     
-    for (const module of modules) {
-      const commits = await getCommitsSinceLastTag(module.relativePath, { cwd: this.options.repoRoot });
-      moduleCommits.set(module.id, commits);
+    for (const [projectId, projectInfo] of this.hierarchyManager.getModules()) {
+      const commits = await getCommitsSinceLastTag(projectInfo.path, { cwd: this.options.repoRoot });
+      moduleCommits.set(projectId, commits);
     }
 
     // Calculate version bumps for each module
     core.info('🔢 Calculating version bumps...');
     const moduleChanges: ModuleChange[] = [];
     
-    for (const module of modules) {
-      const commits = moduleCommits.get(module.id) || [];
-      const currentVersion = await this.adapter.readVersion(module);
+    for (const [projectId, projectInfo] of this.hierarchyManager.getModules()) {
+      const commits = moduleCommits.get(projectId) || [];
+      const currentVersion = projectInfo.version; // Get version directly from ProjectInfo
       
       // Determine bump type from commits
       const bumpType = this.calculateBumpFromCommits(commits);
@@ -114,7 +121,7 @@ export class MonorepoVersionRunner {
       if (bumpType !== 'none') {
         const newVersion = bumpSemVer(currentVersion, bumpType);
         moduleChanges.push({
-          module,
+          module: projectInfo,
           fromVersion: currentVersion,
           toVersion: newVersion,
           bumpType,
@@ -126,15 +133,15 @@ export class MonorepoVersionRunner {
     // Calculate cascade effects
     core.info('🌊 Calculating cascade effects...');
     const cascadeResult = calculateCascadeEffects(
-      graph,
+      this.hierarchyManager,
       moduleChanges,
-      (moduleName, dependencyBump) => getDependencyBumpType(dependencyBump, this.config)
+      (dependencyBump: BumpType) => getDependencyBumpType(dependencyBump, this.config)
     );
 
     // Update cascade changes with actual version calculations
     for (const change of cascadeResult.changes) {
       if (change.reason === 'cascade') {
-        change.fromVersion = await this.adapter.readVersion(change.module);
+        change.fromVersion = change.module.version; // Get version directly from ProjectInfo
         change.toVersion = bumpSemVer(change.fromVersion, change.bumpType);
       }
     }
@@ -178,7 +185,7 @@ export class MonorepoVersionRunner {
     // Write new versions
     core.info('✍️ Writing new versions...');
     for (const change of allChanges) {
-      await this.adapter.writeVersion(change.module, change.toVersion);
+      await this.versionManager.updateVersion(change.module.id, change.toVersion);
       core.info(`  Updated ${change.module.id} to ${formatSemVer(change.toVersion)}`);
     }
 
@@ -227,10 +234,19 @@ export class MonorepoVersionRunner {
     };
   }
 
-  private createAdapter(adapterName: string, repoRoot: string): LanguageAdapter {
+  private createDetector(adapterName: string, repoRoot: string): ModuleDetector {
     switch (adapterName.toLowerCase()) {
       case 'gradle':
-        return new GradleAdapter(repoRoot);
+        return new GradleModuleDetector(repoRoot);
+      default:
+        throw new Error(`Unsupported adapter: ${adapterName}`);
+    }
+  }
+
+  private createVersionManager(adapterName: string, repoRoot: string, hierarchyManager: HierarchyModuleManager): VersionManager {
+    switch (adapterName.toLowerCase()) {
+      case 'gradle':
+        return new GradleVersionManager(repoRoot, hierarchyManager);
       default:
         throw new Error(`Unsupported adapter: ${adapterName}`);
     }

@@ -1,18 +1,9 @@
 import { SemVer } from "semver";
-
-export interface Module {
-  id: string;
-  path: string;
-  relativePath: string;
-  type: 'module' | 'root';
-}
-
-export interface DependencyRef {
-  id: string;
-}
+import { ProjectInfo } from "./hierarchy.js";
+import { HierarchyModuleManager } from "./hierarchy/hierarchyModuleManager.js";
 
 export interface ModuleChange {
-  module: Module;
+  module: ProjectInfo;
   fromVersion: SemVer;
   toVersion: SemVer;
   bumpType: BumpType;
@@ -22,6 +13,17 @@ export interface ModuleChange {
 export type BumpType = 'major' | 'minor' | 'patch' | 'none';
 
 export type ChangeReason = 'commits' | 'dependency' | 'cascade';
+
+/**
+ * General interface for version management operations.
+ * Implementations handle build-system-specific version updates.
+ */
+export interface VersionManager {
+  /**
+   * Update the version of a module using the build system's version management approach
+   */
+  updateVersion(moduleId: string, newVersion: SemVer): Promise<void>;
+}
 
 export interface CommitInfo {
   hash: string;
@@ -33,55 +35,11 @@ export interface CommitInfo {
   module?: string;
 }
 
-export interface LanguageAdapter {
+export interface ModuleDetector {
+  readonly repoRoot: string;
+  
   /**
-   * Detect all modules in the repository
+   * Detect all modules in the repository and return a hierarchy manager
    */
-  detectModules(repoRoot: string): Promise<Module[]>;
-
-  /**
-   * Read the current version of a module
-   */
-  readVersion(module: Module): Promise<SemVer>;
-
-  /**
-   * Write a new version to a module
-   */
-  writeVersion(module: Module, newVersion: SemVer): Promise<void>;
-
-  /**
-   * Get dependencies for a module
-   */
-  getDependencies(module: Module): Promise<DependencyRef[]>;
-
-  /**
-   * Update dependency constraints when a dependency's version changes
-   */
-  updateDependentConstraints?(
-    module: Module,
-    dep: DependencyRef,
-    newVersion: SemVer
-  ): Promise<void>;
-
-  /**
-   * Get the adapter name
-   */
-  getName(): string;
-}
-
-export abstract class BaseAdapter implements LanguageAdapter {
-  abstract detectModules(repoRoot: string): Promise<Module[]>;
-  abstract readVersion(module: Module): Promise<SemVer>;
-  abstract writeVersion(module: Module, newVersion: SemVer): Promise<void>;
-  abstract getDependencies(module: Module): Promise<DependencyRef[]>;
-  abstract getName(): string;
-
-  async updateDependentConstraints?(
-    module: Module,
-    dep: DependencyRef,
-    newVersion: SemVer
-  ): Promise<void> {
-    // Default implementation does nothing
-    // Adapters can override this if they support dependency constraint updates
-  }
+  detect(): Promise<HierarchyModuleManager>;
 }

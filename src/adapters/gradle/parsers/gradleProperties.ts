@@ -4,8 +4,8 @@ import { parseVersionProperties, upsertProperty } from '../../../utils/propertie
 import { SemVer } from 'semver';
 
 export interface ModuleVersion {
-  /** Module path (e.g., ":", ":x", ":x:y", ":z") */
-  modulePath: string;
+  /** Module ID (e.g., ":", ":x", ":x:y", ":z") */
+  moduleId: string;
   /** Semantic version of the module */
   version: SemVer;
 }
@@ -40,14 +40,14 @@ export async function parseGradleProperties(projectDir: string): Promise<GradleP
         // Root project version
         rootVersion = version;
         moduleVersions.push({
-          modulePath: ':',
+          moduleId: ':',
           version
         });
       } else {
-        // Module version - convert from property name to module path
-        const modulePath = versionPropertyNameToModulePath(key);
+        // Module version - convert from property name to module ID
+        const moduleId = versionPropertyNameToModuleId(key);
         moduleVersions.push({
-          modulePath,
+          moduleId,
           version
         });
       }
@@ -79,7 +79,7 @@ export async function parseGradleProperties(projectDir: string): Promise<GradleP
  * - x.version -> ":x"
  * - x.y.version -> ":x:y"
  */
-function versionPropertyNameToModulePath(propertyName: string): string {
+function versionPropertyNameToModuleId(propertyName: string): string {
   if (propertyName === 'version') {
     return ':';
   }
@@ -98,13 +98,13 @@ function versionPropertyNameToModulePath(propertyName: string): string {
  * - ":x" -> "x.version"
  * - ":x:y" -> "x.y.version"
  */
-function modulePathToVersionPropertyName(modulePath: string): string {
-  if (modulePath === ':') {
+function moduleIdToVersionPropertyName(moduleId: string): string {
+  if (moduleId === ':') {
     return 'version';
   }
   
   // Remove leading colon and convert colons to dots: ":x:y" -> "x.y"
-  const dotPath = modulePath.substring(1).replaceAll(':', '.');
+  const dotPath = moduleId.substring(1).replaceAll(':', '.');
   
   return dotPath + '.version';
 }
@@ -114,29 +114,12 @@ function modulePathToVersionPropertyName(modulePath: string): string {
  */
 export async function updateModuleVersionInGradleProperties(
   projectDir: string,
-  modulePath: string,
+  moduleId: string,
   newVersion: SemVer
 ): Promise<void> {
   const propertiesPath = join(projectDir, 'gradle.properties');
-  const propertyName = modulePathToVersionPropertyName(modulePath);
+  const propertyName = moduleIdToVersionPropertyName(moduleId);
   const versionString = formatSemVer(newVersion);
 
   await upsertProperty(propertiesPath, propertyName, versionString);
-}
-
-/**
- * Get all module paths from gradle.properties
- */
-export async function getModulePaths(projectDir: string): Promise<string[]> {
-  const properties = await parseGradleProperties(projectDir);
-  return properties.moduleVersions.map(mv => mv.modulePath);
-}
-
-/**
- * Get version for a specific module
- */
-export async function getModuleVersion(projectDir: string, modulePath: string): Promise<SemVer | undefined> {
-  const properties = await parseGradleProperties(projectDir);
-  const moduleVersion = properties.moduleVersions.find(mv => mv.modulePath === modulePath);
-  return moduleVersion?.version;
 }

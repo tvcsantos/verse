@@ -7,20 +7,11 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import {
   ProjectHierarchy,
-  HierarchyDependency,
-  HierarchyParseResult
+  HierarchyParseResult,
+  ProjectInfo
 } from '../../hierarchy.js';
 import { spawn } from 'child_process';
-
-/**
- * Execute the Gradle hierarchy command and parse the JSON output
- */
-export async function parseHierarchyDependencies(projectRoot: string): Promise<HierarchyParseResult> {
-  const hierarchyJson = await executeGradleHierarchyCommand(projectRoot);
-  const hierarchy: ProjectHierarchy = JSON.parse(hierarchyJson);
-  
-  return parseHierarchyStructure(hierarchy);
-}
+import { parseSemVer } from '../../../semver/index.js';
 
 /**
  * Execute the gradle hierarchy command to get the JSON output
@@ -77,67 +68,32 @@ export async function executeGradleHierarchyCommand(projectRoot: string): Promis
 /**
  * Parse the hierarchy structure and extract dependency relationships
  */
-export function parseHierarchyStructure(hierarchy: ProjectHierarchy): HierarchyParseResult {
-  const projectPaths = Object.keys(hierarchy);
-  const dependencies: HierarchyDependency[] = [];
-  const dependencyMap = new Map<string, string[]>();
-  let rootProject = ':';
+export function parseHierarchyStructure(hierarchy: ProjectHierarchy, repoRoot: string): HierarchyParseResult {
+  const projectIds = Object.keys(hierarchy);
+  const projectMap = new Map<string, ProjectInfo>();
   
-  // Find root project (either ":" or empty string)
-  if (hierarchy[':']) {
-    rootProject = ':';
-  } else if (hierarchy['']) {
-    rootProject = '';
-  }
-  
-  // Initialize dependency map for all projects
-  for (const projectPath of projectPaths) {
-    dependencyMap.set(projectPath, []);
-  }
-  
-  // Build dependency relationships
-  for (const [projectPath, projectNode] of Object.entries(hierarchy)) {
-    for (const affectedProject of projectNode.affectedSubprojects) {
-      dependencies.push({
-        dependent: affectedProject,
-        dependency: projectPath
-      });
-      
-      // Add to dependency map for efficient lookup
-      const existingDeps = dependencyMap.get(affectedProject) || [];
-      existingDeps.push(projectPath);
-      dependencyMap.set(affectedProject, existingDeps);
+  // Find root project by looking for the one with type 'root'
+  let rootProject: string | undefined;
+  for (const [projectId, projectNode] of Object.entries(hierarchy)) {
+    if (projectNode.type === 'root') {
+      rootProject = projectId;
     }
+    projectMap.set(projectId, {
+      id: projectId,
+      path: projectNode.path,
+      type: projectNode.type,
+      affectedProjects: new Set(projectNode.affectedSubprojects),
+      version: parseSemVer(projectNode.version)
+    });
+  }
+  
+  if (!rootProject) {
+    throw new Error('No root project found in hierarchy. Every project hierarchy must contain exactly one project with type "root".');
   }
   
   return {
-    hierarchy,
-    projectIds: projectPaths,
-    dependencies,
-    dependencyMap,
+    projectIds,
+    projectMap,
     rootProject
   };
-}
-
-/**
- * Get all projects that depend on the given project
- */
-export function getDependentsOf(parseResult: HierarchyParseResult, projectPath: string): string[] {
-  return parseResult.dependencies
-    .filter(dep => dep.dependency === projectPath)
-    .map(dep => dep.dependent);
-}
-
-/**
- * Get all projects that the given project depends on
- */
-export function getDependenciesOf(parseResult: HierarchyParseResult, projectPath: string): string[] {
-  return parseResult.dependencyMap.get(projectPath) || [];
-}
-
-/**
- * Convert project path to file system path
- */
-export function getProjectPath(parseResult: HierarchyParseResult, projectPath: string): string | undefined {
-  return parseResult.hierarchy[projectPath]?.path;
 }
