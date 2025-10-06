@@ -1,14 +1,14 @@
 import { SemVer } from "semver";
 
 export interface Module {
-  name: string;
+  id: string;
   path: string;
   relativePath: string;
   type: 'module' | 'root';
 }
 
 export interface DependencyRef {
-  name: string;
+  id: string;
 }
 
 export interface ModuleChange {

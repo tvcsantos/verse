@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { 
   parseHierarchyStructure, 
-  getDependentsOf, 
   getDependenciesOf, 
   getProjectPath
 } from '../src/adapters/gradle/parsers/hierarchyDependencies.js';
@@ -36,57 +35,16 @@ describe('Hierarchy Dependencies Parser', () => {
       const result = parseHierarchyStructure(sampleHierarchy);
       
       expect(result.hierarchy).toBe(sampleHierarchy);
-      expect(result.projectPaths).toHaveLength(5);
-      expect(result.projectPaths).toContain(':');
-      expect(result.projectPaths).toContain(':base');
-      expect(result.projectPaths).toContain(':spring');
-      expect(result.projectPaths).toContain(':spring:core');
-      expect(result.projectPaths).toContain(':spring:servlet');
+      expect(result.projectIds).toHaveLength(5);
+      expect(result.projectIds).toContain(':');
+      expect(result.projectIds).toContain(':base');
+      expect(result.projectIds).toContain(':spring');
+      expect(result.projectIds).toContain(':spring:core');
+      expect(result.projectIds).toContain(':spring:servlet');
       expect(result.rootProject).toBe(':');
     });
 
-    it('should build dependency relationships correctly', () => {
-      const result = parseHierarchyStructure(sampleHierarchy);
-      
-      // Root project affects 4 subprojects
-      const rootAffects = result.dependencies.filter(dep => dep.dependency === ':');
-      expect(rootAffects).toHaveLength(4);
-      expect(rootAffects.map(d => d.dependent)).toContain(':base');
-      expect(rootAffects.map(d => d.dependent)).toContain(':spring');
-      expect(rootAffects.map(d => d.dependent)).toContain(':spring:core');
-      expect(rootAffects.map(d => d.dependent)).toContain(':spring:servlet');
-      
-      // Spring project affects 2 subprojects
-      const springAffects = result.dependencies.filter(dep => dep.dependency === ':spring');
-      expect(springAffects).toHaveLength(2);
-      expect(springAffects.map(d => d.dependent)).toContain(':spring:core');
-      expect(springAffects.map(d => d.dependent)).toContain(':spring:servlet');
-      
-      // Base has no affected subprojects
-      const baseAffects = result.dependencies.filter(dep => dep.dependency === ':base');
-      expect(baseAffects).toHaveLength(0);
-    });
-  });
 
-  describe('getDependentsOf', () => {
-    it('should return projects that depend on the given project', () => {
-      const result = parseHierarchyStructure(sampleHierarchy);
-      
-      const rootDependents = getDependentsOf(result, ':');
-      expect(rootDependents).toHaveLength(4);
-      expect(rootDependents).toContain(':base');
-      expect(rootDependents).toContain(':spring');
-      expect(rootDependents).toContain(':spring:core');
-      expect(rootDependents).toContain(':spring:servlet');
-      
-      const springDependents = getDependentsOf(result, ':spring');
-      expect(springDependents).toHaveLength(2);
-      expect(springDependents).toContain(':spring:core');
-      expect(springDependents).toContain(':spring:servlet');
-      
-      const baseDependents = getDependentsOf(result, ':base');
-      expect(baseDependents).toHaveLength(0);
-    });
   });
 
   describe('getDependenciesOf', () => {

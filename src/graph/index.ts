@@ -25,19 +25,19 @@ export function buildDependencyGraph(
 
     // Initialize dependents map
     for (const module of modules) {
-      dependents.set(module.name, []);
+      dependents.set(module.id, []);
     }
 
     // Build dependencies and reverse dependencies
     for (const module of modules) {
       const moduleDeps = await getDependencies(module);
-      dependencies.set(module.name, moduleDeps);
+      dependencies.set(module.id, moduleDeps);
 
       // Build reverse dependencies (dependents)
       for (const dep of moduleDeps) {
-        const depDependents = dependents.get(dep.name) || [];
-        depDependents.push(module.name);
-        dependents.set(dep.name, depDependents);
+        const depDependents = dependents.get(dep.id) || [];
+        depDependents.push(module.id);
+        dependents.set(dep.id, depDependents);
       }
     }
 
@@ -56,7 +56,7 @@ export function topologicalSort(graph: DependencyGraph): Module[] {
   const visited = new Set<string>();
   const visiting = new Set<string>();
   const result: Module[] = [];
-  const moduleMap = new Map(graph.modules.map(m => [m.name, m]));
+  const moduleMap = new Map(graph.modules.map(m => [m.id, m]));
 
   function visit(moduleName: string): void {
     if (visited.has(moduleName)) {
@@ -72,8 +72,8 @@ export function topologicalSort(graph: DependencyGraph): Module[] {
     // Visit dependencies first
     const deps = graph.dependencies.get(moduleName) || [];
     for (const dep of deps) {
-      if (moduleMap.has(dep.name)) {
-        visit(dep.name);
+      if (moduleMap.has(dep.id)) {
+        visit(dep.id);
       }
     }
 
@@ -88,8 +88,8 @@ export function topologicalSort(graph: DependencyGraph): Module[] {
 
   // Visit all modules
   for (const module of graph.modules) {
-    if (!visited.has(module.name)) {
-      visit(module.name);
+    if (!visited.has(module.id)) {
+      visit(module.id);
     }
   }
 
@@ -110,22 +110,22 @@ export function calculateCascadeEffects(
 
   // Index initial changes
   for (const change of initialChanges) {
-    changeMap.set(change.module.name, change);
-    processed.add(change.module.name);
+    changeMap.set(change.module.id, change);
+    processed.add(change.module.id);
   }
 
   const queue = [...initialChanges];
 
   while (queue.length > 0) {
     const currentChange = queue.shift()!;
-    const dependents = graph.dependents.get(currentChange.module.name) || [];
+    const dependents = graph.dependents.get(currentChange.module.id) || [];
 
     for (const dependentName of dependents) {
       if (processed.has(dependentName)) {
         continue; // Already processed this module
       }
 
-      const dependentModule = graph.modules.find(m => m.name === dependentName);
+      const dependentModule = graph.modules.find(m => m.id === dependentName);
       if (!dependentModule) {
         continue;
       }
@@ -209,7 +209,7 @@ export function findAllDependencies(
 
   visited.add(moduleName);
   const directDeps = graph.dependencies.get(moduleName) || [];
-  const projectDeps = directDeps.map(dep => dep.name);
+  const projectDeps = directDeps.map(dep => dep.id);
   const allDeps = [...projectDeps];
 
   for (const dep of projectDeps) {

@@ -5,25 +5,25 @@ import { parseSemVer } from '../src/semver/index.js';
 
 describe('Dependency Graph', () => {
   const modules: Module[] = [
-    { name: 'root', path: '/root', relativePath: '.', type: 'root' },
-    { name: 'core', path: '/core', relativePath: 'core', type: 'module' },
-    { name: 'utils', path: '/utils', relativePath: 'utils', type: 'module' },
-    { name: 'api', path: '/api', relativePath: 'api', type: 'module' },
+    { id: 'root', path: '/root', relativePath: '.', type: 'root' },
+    { id: 'core', path: '/core', relativePath: 'core', type: 'module' },
+    { id: 'utils', path: '/utils', relativePath: 'utils', type: 'module' },
+    { id: 'api', path: '/api', relativePath: 'api', type: 'module' },
   ];
 
   const getDependencies = async (module: Module): Promise<DependencyRef[]> => {
     const deps: Record<string, DependencyRef[]> = {
       root: [],
       core: [
-        { name: 'utils' },
+        { id: 'utils' },
       ],
       utils: [],
       api: [
-        { name: 'core' },
-        { name: 'utils' },
+        { id: 'core' },
+        { id: 'utils' },
       ],
     };
-    return deps[module.name] || [];
+    return deps[module.id] || [];
   };
 
   describe('buildDependencyGraph', () => {
@@ -32,8 +32,8 @@ describe('Dependency Graph', () => {
       
       expect(graph.modules).toEqual(modules);
       expect(graph.dependencies.get('api')).toEqual([
-        { name: 'core' },
-        { name: 'utils' },
+        { id: 'core' },
+        { id: 'utils' },
       ]);
       expect(graph.dependents.get('utils')).toEqual(['core', 'api']);
     });
@@ -44,7 +44,7 @@ describe('Dependency Graph', () => {
       const graph = await buildDependencyGraph(modules, getDependencies);
       const sorted = topologicalSort(graph);
       
-      const moduleNames = sorted.map(m => m.name);
+      const moduleNames = sorted.map(m => m.id);
       
       // utils should come before core and api
       expect(moduleNames.indexOf('utils')).toBeLessThan(moduleNames.indexOf('core'));
@@ -61,7 +61,7 @@ describe('Dependency Graph', () => {
       
       const initialChanges: ModuleChange[] = [
         {
-          module: modules.find(m => m.name === 'utils')!,
+          module: modules.find(m => m.id === 'utils')!,
           fromVersion: parseSemVer('1.0.0'),
           toVersion: parseSemVer('1.1.0'),
           bumpType: 'minor',

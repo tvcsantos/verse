@@ -12,6 +12,7 @@ import {
 } from './parsers/hierarchyDependencies.js';
 import { HierarchyParseResult } from '../hierarchy.js';
 import { SemVer } from 'semver';
+import * as core from '@actions/core';
 
 export interface GradleProperties {
   [key: string]: string;
@@ -31,22 +32,24 @@ export class GradleAdapter extends BaseAdapter {
   async detectModules(repoRoot: string): Promise<Module[]> {
     // Initialize hierarchy dependencies - this gives us all project information
     await this.initializeHierarchy(repoRoot);
-    
-    if (!this.hierarchyResult) {
+
+    const hierarchyResult = this.hierarchyResult;
+
+    if (!hierarchyResult) {
       throw new Error('Could not initialize hierarchy dependencies. Please ensure init-hierarchy-deps.gradle.kts exists and gradle is available.');
     }
     
     // Create modules from hierarchy data
-    return this.hierarchyResult.projectPaths.map(projectPath => {
-      const projectNode = this.hierarchyResult!.hierarchy[projectPath];
-      const moduleName = projectPath === ':' ? 'root' : projectPath.replace(/^:/, '').replace(/:/g, '/');
-      const relativePath = projectPath === ':' ? '' : projectPath.replace(/^:/, '').replace(/:/g, '/');
-      
+    return hierarchyResult.projectIds.map(projectId => {
+      const projectNode = hierarchyResult.hierarchy[projectId];
+      const moduleName = projectId === ':' ? 'root' : projectId.replace(/^:/, '').replace(/:/g, '/');
+      const relativePath = projectId === ':' ? '' : projectId.replace(/^:/, '').replace(/:/g, '/');
+
       return {
-        name: moduleName,
+        id: moduleName,
         path: projectNode.path,
         relativePath,
-        type: projectPath === ':' ? 'root' as const : 'module' as const,
+        type: projectId === ':' ? 'root' as const : 'module' as const,
       };
     });
   }
@@ -180,7 +183,7 @@ export class GradleAdapter extends BaseAdapter {
     try {
       this.hierarchyResult = await parseHierarchyDependencies(repoRoot);
     } catch (error) {
-      console.warn(`Could not initialize hierarchy dependencies: ${error instanceof Error ? error.message : String(error)}`);
+      core.warning(`Could not initialize hierarchy dependencies: ${error instanceof Error ? error.message : String(error)}`);
       // Continue without hierarchy dependencies - fallback to existing parsing methods
       this.hierarchyResult = null;
     }
@@ -202,7 +205,7 @@ export class GradleAdapter extends BaseAdapter {
     const projectDependencies = getDependenciesOf(this.hierarchyResult, projectPath);
     
     return projectDependencies.map(depPath => ({
-      name: depPath === ':' ? 'root' : depPath.replace(/^:/, '').replace(/:/g, '/'),
+      id: depPath === ':' ? 'root' : depPath.replace(/^:/, '').replace(/:/g, '/'),
       constraint: '',
     }));
   }

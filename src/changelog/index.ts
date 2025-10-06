@@ -176,7 +176,7 @@ export async function updateChangelogFile(
   } catch (error) {
     if (error instanceof Error && 'code' in error && (error as any).code === 'ENOENT') {
       // Create new changelog file
-      const moduleName = module.name === 'root' ? 'Root Module' : module.name;
+      const moduleName = module.id === 'root' ? 'Root Module' : module.id;
       const newContent = `# Changelog - ${moduleName}\n\n${changelogContent}`;
       await fs.writeFile(changelogPath, newContent, 'utf8');
     } else {
@@ -239,7 +239,7 @@ export async function generateRootChangelog(
     for (const moduleChange of moduleChanges) {
       const fromVersion = formatSemVer(moduleChange.fromVersion);
       const toVersion = formatSemVer(moduleChange.toVersion);
-      const moduleName = moduleChange.module.name === 'root' ? 'Root' : moduleChange.module.name;
+      const moduleName = moduleChange.module.id === 'root' ? 'Root' : moduleChange.module.id;
       
       content += `- **${moduleName}**: ${fromVersion} → ${toVersion}\n`;
     }

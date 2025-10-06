@@ -85,7 +85,7 @@ export class MonorepoVersionRunner {
     // Discover modules
     core.info('🔍 Discovering modules...');
     const modules = await this.adapter.detectModules(this.options.repoRoot);
-    core.info(`Found ${modules.length} modules: ${modules.map(m => m.name).join(', ')}`);
+    core.info(`Found ${modules.length} modules: ${modules.map(m => m.id).join(', ')}`);
 
     // Build dependency graph
     core.info('📊 Building dependency graph...');
@@ -97,7 +97,7 @@ export class MonorepoVersionRunner {
     
     for (const module of modules) {
       const commits = await getCommitsSinceLastTag(module.relativePath, { cwd: this.options.repoRoot });
-      moduleCommits.set(module.name, commits);
+      moduleCommits.set(module.id, commits);
     }
 
     // Calculate version bumps for each module
@@ -105,7 +105,7 @@ export class MonorepoVersionRunner {
     const moduleChanges: ModuleChange[] = [];
     
     for (const module of modules) {
-      const commits = moduleCommits.get(module.name) || [];
+      const commits = moduleCommits.get(module.id) || [];
       const currentVersion = await this.adapter.readVersion(module);
       
       // Determine bump type from commits
@@ -155,7 +155,7 @@ export class MonorepoVersionRunner {
     for (const change of allChanges) {
       const from = formatSemVer(change.fromVersion);
       const to = formatSemVer(change.toVersion);
-      core.info(`  ${change.module.name}: ${from} → ${to} (${change.bumpType}, ${change.reason})`);
+      core.info(`  ${change.module.id}: ${from} → ${to} (${change.bumpType}, ${change.reason})`);
     }
 
     if (this.options.dryRun) {
@@ -163,13 +163,13 @@ export class MonorepoVersionRunner {
       return {
         bumped: true,
         changedModules: allChanges.map(change => ({
-          name: change.module.name,
+          name: change.module.id,
           from: formatSemVer(change.fromVersion),
           to: formatSemVer(change.toVersion),
           bumpType: change.bumpType,
         })),
         createdTags: allChanges.map(change => 
-          `${change.module.name}@${formatSemVer(change.toVersion)}`
+          `${change.module.id}@${formatSemVer(change.toVersion)}`
         ),
         changelogPaths: [],
       };
@@ -179,14 +179,14 @@ export class MonorepoVersionRunner {
     core.info('✍️ Writing new versions...');
     for (const change of allChanges) {
       await this.adapter.writeVersion(change.module, change.toVersion);
-      core.info(`  Updated ${change.module.name} to ${formatSemVer(change.toVersion)}`);
+      core.info(`  Updated ${change.module.id} to ${formatSemVer(change.toVersion)}`);
     }
 
     // Generate changelogs
     core.info('📚 Generating changelogs...');
     const changelogPaths = await generateChangelogsForModules(
       allChanges,
-      async (module) => moduleCommits.get(module.name) || [],
+      async (module) => moduleCommits.get(module.id) || [],
       this.options.repoRoot
     );
 
@@ -199,8 +199,8 @@ export class MonorepoVersionRunner {
     if (this.options.pushTags) {
       core.info('🏷️ Creating tags...');
       for (const change of allChanges) {
-        const tagName = `${change.module.name}@${formatSemVer(change.toVersion)}`;
-        const message = `Release ${change.module.name} v${formatSemVer(change.toVersion)}`;
+        const tagName = `${change.module.id}@${formatSemVer(change.toVersion)}`;
+        const message = `Release ${change.module.id} v${formatSemVer(change.toVersion)}`;
         
         createTag(tagName, message, { cwd: this.options.repoRoot });
         createdTags.push(tagName);
@@ -217,7 +217,7 @@ export class MonorepoVersionRunner {
     return {
       bumped: true,
       changedModules: allChanges.map(change => ({
-        name: change.module.name,
+        name: change.module.id,
         from: formatSemVer(change.fromVersion),
         to: formatSemVer(change.toVersion),
         bumpType: change.bumpType,

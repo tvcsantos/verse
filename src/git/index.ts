@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import { CommitInfo } from '../adapters/core.js';
 import * as conventionalCommitsParser from 'conventional-commits-parser';
+import * as core from '@actions/core';
 
 export interface GitTag {
   name: string;
@@ -60,7 +61,7 @@ export async function getCommitsInRange(
     
     return parseGitLog(output);
   } catch (error) {
-    console.warn(`Warning: Failed to get git commits: ${error}`);
+    core.warning(`Warning: Failed to get git commits: ${error}`);
     return [];
   }
 }

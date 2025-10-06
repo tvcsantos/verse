@@ -10,7 +10,7 @@
 export interface ProjectNode {
   /** Absolute file system path to the project directory */
   path: string;
-  /** List of subproject paths that are affected when this project changes */
+  /** List of subproject ids that are affected when this project changes */
   affectedSubprojects: string[];
 }
 
@@ -20,7 +20,7 @@ export interface ProjectNode {
  * Root project is represented by ":" or empty string
  */
 export interface ProjectHierarchy {
-  [projectPath: string]: ProjectNode;
+  [id: string]: ProjectNode;
 }
 
 /**
@@ -39,10 +39,10 @@ export interface HierarchyDependency {
 export interface HierarchyParseResult {
   /** The raw hierarchy data */
   hierarchy: ProjectHierarchy;
-  /** All project paths found in the hierarchy */
-  projectPaths: string[];
-  /** Flattened dependency relationships */
-  dependencies: HierarchyDependency[];
-  /** Root project path (usually ":" for Gradle, "." for Maven, etc.) */
+  /** All project ids found in the hierarchy */
+  projectIds: string[];
+  /** Map of project id to all its dependencies (direct + transitive) for efficient lookup */
+  dependencyMap: Map<string, Set<string>>;
+  /** Root project id (usually ":" for Gradle, "." for Maven, etc.) */
   rootProject: string;
 }
