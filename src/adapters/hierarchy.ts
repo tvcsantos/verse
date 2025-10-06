@@ -41,8 +41,10 @@ export interface HierarchyParseResult {
   hierarchy: ProjectHierarchy;
   /** All project ids found in the hierarchy */
   projectIds: string[];
-  /** Map of project id to all its dependencies (direct + transitive) for efficient lookup */
-  dependencyMap: Map<string, Set<string>>;
+  /** Flattened dependency relationships */
+  dependencies: HierarchyDependency[];
+  /** Map of project id to its direct dependencies for efficient lookup */
+  dependencyMap: Map<string, string[]>;
   /** Root project id (usually ":" for Gradle, "." for Maven, etc.) */
   rootProject: string;
 }

@@ -32,21 +32,19 @@ export class GradleAdapter extends BaseAdapter {
   async detectModules(repoRoot: string): Promise<Module[]> {
     // Initialize hierarchy dependencies - this gives us all project information
     await this.initializeHierarchy(repoRoot);
-
-    const hierarchyResult = this.hierarchyResult;
-
-    if (!hierarchyResult) {
+    
+    if (!this.hierarchyResult) {
       throw new Error('Could not initialize hierarchy dependencies. Please ensure init-hierarchy-deps.gradle.kts exists and gradle is available.');
     }
     
     // Create modules from hierarchy data
-    return hierarchyResult.projectIds.map(projectId => {
-      const projectNode = hierarchyResult.hierarchy[projectId];
+    return this.hierarchyResult.projectIds.map(projectId => {
+      const projectNode = this.hierarchyResult!.hierarchy[projectId];
       const moduleName = projectId === ':' ? 'root' : projectId.replace(/^:/, '').replace(/:/g, '/');
       const relativePath = projectId === ':' ? '' : projectId.replace(/^:/, '').replace(/:/g, '/');
 
       return {
-        id: moduleName,
+        name: moduleName,
         path: projectNode.path,
         relativePath,
         type: projectId === ':' ? 'root' as const : 'module' as const,
@@ -205,7 +203,7 @@ export class GradleAdapter extends BaseAdapter {
     const projectDependencies = getDependenciesOf(this.hierarchyResult, projectPath);
     
     return projectDependencies.map(depPath => ({
-      id: depPath === ':' ? 'root' : depPath.replace(/^:/, '').replace(/:/g, '/'),
+      name: depPath === ':' ? 'root' : depPath.replace(/^:/, '').replace(/:/g, '/'),
       constraint: '',
     }));
   }

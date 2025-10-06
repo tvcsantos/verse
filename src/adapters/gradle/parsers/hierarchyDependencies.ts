@@ -7,6 +7,7 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import {
   ProjectHierarchy,
+  HierarchyDependency,
   HierarchyParseResult
 } from '../../hierarchy.js';
 import { spawn } from 'child_process';
@@ -78,7 +79,8 @@ export async function executeGradleHierarchyCommand(projectRoot: string): Promis
  */
 export function parseHierarchyStructure(hierarchy: ProjectHierarchy): HierarchyParseResult {
   const projectPaths = Object.keys(hierarchy);
-  const dependencyMap = new Map<string, Set<string>>();
+  const dependencies: HierarchyDependency[] = [];
+  const dependencyMap = new Map<string, string[]>();
   let rootProject = ':';
   
   // Find root project (either ":" or empty string)
@@ -90,63 +92,47 @@ export function parseHierarchyStructure(hierarchy: ProjectHierarchy): HierarchyP
   
   // Initialize dependency map for all projects
   for (const projectPath of projectPaths) {
-    dependencyMap.set(projectPath, new Set<string>());
+    dependencyMap.set(projectPath, []);
   }
   
-  // Build direct dependency relationships
+  // Build dependency relationships
   for (const [projectPath, projectNode] of Object.entries(hierarchy)) {
     for (const affectedProject of projectNode.affectedSubprojects) {
-      // Add direct dependency to map
-      const projectDeps = dependencyMap.get(affectedProject);
-      if (projectDeps) {
-        projectDeps.add(projectPath);
-      }
-    }
-  }
-  
-  // Compute transitive dependencies using fixed-point algorithm
-  let changed = true;
-  while (changed) {
-    changed = false;
-    
-    for (const projectPath of projectPaths) {
-      const projectDeps = dependencyMap.get(projectPath);
-      if (!projectDeps) continue;
+      dependencies.push({
+        dependent: affectedProject,
+        dependency: projectPath
+      });
       
-      const currentSize = projectDeps.size;
-      
-      // For each direct dependency, add all its dependencies transitively
-      const directDeps = Array.from(projectDeps);
-      for (const dep of directDeps) {
-        const depDeps = dependencyMap.get(dep);
-        if (depDeps) {
-          for (const transitiveDep of depDeps) {
-            projectDeps.add(transitiveDep);
-          }
-        }
-      }
-      
-      // Check if we added any new dependencies
-      if (projectDeps.size > currentSize) {
-        changed = true;
-      }
+      // Add to dependency map for efficient lookup
+      const existingDeps = dependencyMap.get(affectedProject) || [];
+      existingDeps.push(projectPath);
+      dependencyMap.set(affectedProject, existingDeps);
     }
   }
   
   return {
     hierarchy,
     projectIds: projectPaths,
+    dependencies,
     dependencyMap,
     rootProject
   };
 }
 
 /**
- * Get all projects that the given project depends on (includes transitive dependencies)
+ * Get all projects that depend on the given project
+ */
+export function getDependentsOf(parseResult: HierarchyParseResult, projectPath: string): string[] {
+  return parseResult.dependencies
+    .filter(dep => dep.dependency === projectPath)
+    .map(dep => dep.dependent);
+}
+
+/**
+ * Get all projects that the given project depends on
  */
 export function getDependenciesOf(parseResult: HierarchyParseResult, projectPath: string): string[] {
-  const deps = parseResult.dependencyMap.get(projectPath);
-  return deps ? Array.from(deps) : [];
+  return parseResult.dependencyMap.get(projectPath) || [];
 }
 
 /**
