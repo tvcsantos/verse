@@ -44,7 +44,7 @@ export class GradleAdapter extends BaseAdapter {
       const relativePath = projectId === ':' ? '' : projectId.replace(/^:/, '').replace(/:/g, '/');
 
       return {
-        name: moduleName,
+        id: moduleName,
         path: projectNode.path,
         relativePath,
         type: projectId === ':' ? 'root' as const : 'module' as const,
@@ -203,7 +203,7 @@ export class GradleAdapter extends BaseAdapter {
     const projectDependencies = getDependenciesOf(this.hierarchyResult, projectPath);
     
     return projectDependencies.map(depPath => ({
-      name: depPath === ':' ? 'root' : depPath.replace(/^:/, '').replace(/:/g, '/'),
+      id: depPath === ':' ? 'root' : depPath.replace(/^:/, '').replace(/:/g, '/'),
       constraint: '',
     }));
   }

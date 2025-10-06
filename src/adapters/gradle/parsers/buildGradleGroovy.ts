@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { dirname } from 'path';
-import { SemVer } from '../../../adapters/core.js';
 import { parseGradleProperties, GradleProperties, ModuleVersion } from './gradleProperties.js';
+import { SemVer } from 'semver';
 
 export interface GroovyDependency {
   configuration: string;

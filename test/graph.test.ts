@@ -32,8 +32,8 @@ describe('Dependency Graph', () => {
       
       expect(graph.modules).toEqual(modules);
       expect(graph.dependencies.get('api')).toEqual([
-        { name: 'core' },
-        { name: 'utils' },
+        { id: 'core' },
+        { id: 'utils' },
       ]);
       expect(graph.dependents.get('utils')).toEqual(['core', 'api']);
     });
