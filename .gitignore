@@ -5,7 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Output
-dist/
+#dist/
 lib/
 *.tsbuildinfo
 
