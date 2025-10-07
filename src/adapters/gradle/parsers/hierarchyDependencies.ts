@@ -12,6 +12,7 @@ import {
 import { getExecOutput } from '@actions/exec';
 import { parseSemVer } from '../../../semver/index.js';
 import { fileExists } from '../../../utils/file.js';
+import * as core from '@actions/core';
 
 /**
  * Execute the gradle hierarchy command to get the JSON output
@@ -44,6 +45,8 @@ export async function executeGradleHierarchyCommand(projectRoot: string): Promis
     throw new Error(`Gradle command failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
   
+  core.info(`Gradle command output: ${result.stdout}`);
+
   return result.stdout.trim();
 }
 
