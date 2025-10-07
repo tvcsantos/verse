@@ -1,16 +1,14 @@
 import * as core from '@actions/core';
 import { 
-  ModuleDetector,
   ModuleChange,
   BumpType,
   CommitInfo,
-  VersionManager
+  ModuleSystemFactory
 } from './adapters/core.js';
 import { HierarchyModuleManager } from './adapters/hierarchy/hierarchyModuleManager.js';
-
-import { GradleModuleDetector } from './adapters/gradle/gradleAdapter.js';
-import { GradleVersionManager } from './adapters/gradle/gradleVersionManager.js';
-import { loadConfig, getBumpTypeForCommit, getDependencyBumpType, Config } from './config/index.js';
+import { VersionManager } from './adapters/versionManager.js';
+import { createModuleSystemFactory } from './factories/moduleSystemFactory.js';
+import { loadConfig, getDependencyBumpType, Config } from './config/index.js';
 import { 
   getCommitsSinceLastTag,
   createTag,
@@ -21,11 +19,12 @@ import {
 import { 
   calculateCascadeEffects
 } from './graph/index.js';
-import { bumpSemVer, maxBumpType, formatSemVer } from './semver/index.js';
+import { bumpSemVer, formatSemVer } from './semver/index.js';
 import { 
   generateChangelogsForModules,
   generateRootChangelog
 } from './changelog/index.js';
+import { calculateBumpFromCommits } from './utils/commits.js';
 
 export interface RunnerOptions {
   repoRoot: string;
@@ -52,7 +51,7 @@ export interface RunnerResult {
 }
 
 export class MonorepoVersionRunner {
-  private detector: ModuleDetector;
+  private moduleSystemFactory: ModuleSystemFactory;
   private hierarchyManager!: HierarchyModuleManager; // Will be initialized in run()
   private versionManager!: VersionManager; // Will be initialized in run()
   private config!: Config; // Will be initialized in run()
@@ -60,7 +59,7 @@ export class MonorepoVersionRunner {
 
   constructor(options: RunnerOptions) {
     this.options = options;
-    this.detector = this.createDetector(options.adapter, options.repoRoot);
+    this.moduleSystemFactory = createModuleSystemFactory(options.adapter, options.repoRoot);
   }
 
   async run(): Promise<RunnerResult> {
@@ -71,7 +70,7 @@ export class MonorepoVersionRunner {
     core.info(`📋 Loaded config from ${this.options.configPath}`);
 
     // Check if we're on a release branch
-    const currentBranch = getCurrentBranch({ cwd: this.options.repoRoot });
+    const currentBranch = await getCurrentBranch({ cwd: this.options.repoRoot });
     if (!this.options.releaseBranches.includes(currentBranch)) {
       core.info(`⚠️  Not on a release branch (current: ${currentBranch}), skipping versioning`);
       return {
@@ -89,10 +88,12 @@ export class MonorepoVersionRunner {
 
     // Discover modules and get hierarchy manager
     core.info('🔍 Discovering modules...');
-    this.hierarchyManager = await this.detector.detect();
+    const detector = this.moduleSystemFactory.createDetector();
+    this.hierarchyManager = await detector.detect();
     
     // Create version manager  
-    this.versionManager = this.createVersionManager(this.options.adapter, this.options.repoRoot, this.hierarchyManager);
+    const versionUpdateStrategy = this.moduleSystemFactory.createVersionUpdateStrategy();
+    this.versionManager = new VersionManager(this.hierarchyManager, versionUpdateStrategy);
     
     // Log discovered modules through hierarchy manager
     const moduleIds = this.hierarchyManager.getModuleIds();
@@ -116,7 +117,7 @@ export class MonorepoVersionRunner {
       const currentVersion = projectInfo.version; // Get version directly from ProjectInfo
       
       // Determine bump type from commits
-      const bumpType = this.calculateBumpFromCommits(commits);
+      const bumpType = calculateBumpFromCommits(commits, this.config);
       
       if (bumpType !== 'none') {
         const newVersion = bumpSemVer(currentVersion, bumpType);
@@ -182,12 +183,17 @@ export class MonorepoVersionRunner {
       };
     }
 
-    // Write new versions
-    core.info('✍️ Writing new versions...');
+    // Stage new versions in memory
+    core.info('✍️ Staging new versions...');
     for (const change of allChanges) {
-      await this.versionManager.updateVersion(change.module.id, change.toVersion);
-      core.info(`  Updated ${change.module.id} to ${formatSemVer(change.toVersion)}`);
+      this.versionManager.updateVersion(change.module.id, change.toVersion);
+      core.info(`  Staged ${change.module.id} to ${formatSemVer(change.toVersion)}`);
     }
+
+    // Commit all version updates to files
+    core.info('💾 Committing version updates to files...');
+    await this.versionManager.commit();
+    core.info(`  Committed ${allChanges.length} version updates`);
 
     // Generate changelogs
     core.info('📚 Generating changelogs...');
@@ -234,34 +240,6 @@ export class MonorepoVersionRunner {
     };
   }
 
-  private createDetector(adapterName: string, repoRoot: string): ModuleDetector {
-    switch (adapterName.toLowerCase()) {
-      case 'gradle':
-        return new GradleModuleDetector(repoRoot);
-      default:
-        throw new Error(`Unsupported adapter: ${adapterName}`);
-    }
-  }
 
-  private createVersionManager(adapterName: string, repoRoot: string, hierarchyManager: HierarchyModuleManager): VersionManager {
-    switch (adapterName.toLowerCase()) {
-      case 'gradle':
-        return new GradleVersionManager(repoRoot, hierarchyManager);
-      default:
-        throw new Error(`Unsupported adapter: ${adapterName}`);
-    }
-  }
 
-  private calculateBumpFromCommits(commits: CommitInfo[]): BumpType {
-    const bumpTypes: BumpType[] = [];
-
-    for (const commit of commits) {
-      const bumpType = getBumpTypeForCommit(commit.type, commit.breaking, this.config);
-      if (bumpType !== 'none') {
-        bumpTypes.push(bumpType);
-      }
-    }
-
-    return maxBumpType(bumpTypes);
-  }
 }

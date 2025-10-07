@@ -3,66 +3,43 @@
  * Uses the init-hierarchy-deps.gradle.kts script to extract dependency information
  */
 
-import { promises as fs } from 'fs';
 import { join } from 'path';
 import {
   ProjectHierarchy,
   HierarchyParseResult,
   ProjectInfo
 } from '../../hierarchy.js';
-import { spawn } from 'child_process';
+import { getExecOutput } from '@actions/exec';
 import { parseSemVer } from '../../../semver/index.js';
+import { fileExists } from '../../../utils/file.js';
 
 /**
  * Execute the gradle hierarchy command to get the JSON output
  */
 export async function executeGradleHierarchyCommand(projectRoot: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const gradlew = join(projectRoot, 'gradlew');
-    const initScriptPath = join(projectRoot, 'init-hierarchy-deps.gradle.kts');
-    
-    // Check if init script exists
-    fs.access(initScriptPath).catch(() => {
-      reject(new Error(`Init script not found at ${initScriptPath}. Please create the init-hierarchy-deps.gradle.kts file.`));
-      return;
-    });
-    
-    const args = [
-      '--quiet',
-      '--console=plain',
-      '--init-script',
-      'init-hierarchy-deps.gradle.kts',
-      'hierarchy'
-    ];
-    
-    const process = spawn(gradlew, args, {
-      cwd: projectRoot,
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    
-    process.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    process.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    process.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(`Gradle hierarchy command failed with code ${code}: ${stderr}`));
-      } else {
-        resolve(stdout.trim());
-      }
-    });
-    
-    process.on('error', (error) => {
-      reject(new Error(`Failed to execute gradle hierarchy command: ${error.message}`));
-    });
+  const gradlew = join(projectRoot, 'gradlew');
+  const initScriptPath = join(projectRoot, 'init-hierarchy-deps.gradle.kts');
+  
+  // Check if init script exists
+  const scriptExists = await fileExists(initScriptPath);
+  if (!scriptExists) {
+    throw new Error(`Init script not found at ${initScriptPath}. Please create the init-hierarchy-deps.gradle.kts file.`);
+  }
+  
+  const args = [
+    '--quiet',
+    '--console=plain',
+    '--init-script',
+    'init-hierarchy-deps.gradle.kts',
+    'hierarchy'
+  ];
+  
+  const result = await getExecOutput(gradlew, args, {
+    cwd: projectRoot,
+    silent: true
   });
+  
+  return result.stdout.trim();
 }
 
 /**

@@ -1,7 +1,7 @@
 import { ModuleChange, BumpType } from '../adapters/core.js';
 import { ProjectInfo } from '../adapters/hierarchy.js';
 import { HierarchyModuleManager } from '../adapters/hierarchy/hierarchyModuleManager.js';
-import { maxBumpType, parseSemVer } from '../semver/index.js';
+import { maxBumpType, createInitialVersion } from '../semver/index.js';
 
 export interface CascadeResult {
   changes: ModuleChange[];
@@ -64,8 +64,8 @@ export function calculateCascadeEffects(
         // Create new cascade change
         const cascadeChange: ModuleChange = {
           module: projectInfo,
-          fromVersion: parseSemVer('0.0.0'), // Will be filled in by caller
-          toVersion: parseSemVer('0.0.0'), // Will be filled in by caller
+          fromVersion: createInitialVersion(), // Will be filled in by caller
+          toVersion: createInitialVersion(), // Will be filled in by caller
           bumpType: requiredBump,
           reason: 'cascade',
         };

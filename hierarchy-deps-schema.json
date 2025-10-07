@@ -9,7 +9,12 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "Absolute file system path to the project directory"
+          "description": "Relative file system path to the project directory"
+        },
+        "version": {
+          "type": "string",
+          "description": "Current version of the project",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z-.]+)?$"
         },
         "affectedSubprojects": {
           "type": "array",
@@ -17,11 +22,11 @@
             "type": "string",
             "pattern": ".*"
           },
-          "description": "List of subproject paths that are affected when this project changes",
+          "description": "List of subproject ids that are affected when this project changes",
           "uniqueItems": true
         }
       },
-      "required": ["path", "affectedSubprojects"],
+      "required": ["path", "version", "affectedSubprojects"],
       "additionalProperties": false
     }
   },
@@ -29,23 +34,28 @@
   "examples": [
     {
       ":": {
-        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter",
+        "path": ".",
+        "version": "1.0.0",
         "affectedSubprojects": [":base", ":spring", ":spring:core", ":spring:servlet"]
       },
       ":base": {
-        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/base",
+        "path": "base",
+        "version": "1.0.0",
         "affectedSubprojects": []
       },
       ":spring": {
-        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring",
+        "path": "spring",
+        "version": "1.0.0",
         "affectedSubprojects": [":spring:core", ":spring:servlet"]
       },
       ":spring:core": {
-        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring/core",
+        "path": "spring/core",
+        "version": "1.0.0",
         "affectedSubprojects": []
       },
       ":spring:servlet": {
-        "path": "/Users/santotia/Code/Mercedes/dh-io-domains/mbio-starter/spring/servlet",
+        "path": "spring/servlet",
+        "version": "1.0.0",
         "affectedSubprojects": []
       }
     }

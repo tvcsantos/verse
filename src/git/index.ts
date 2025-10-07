@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { getExecOutput, exec } from '@actions/exec';
 import { CommitInfo } from '../adapters/core.js';
 import * as conventionalCommitsParser from 'conventional-commits-parser';
 import * as core from '@actions/core';
@@ -25,7 +25,7 @@ export async function getCommitsSinceLastTag(
   
   try {
     // Find the last tag for this module
-    const lastTag = getLastTagForModule(modulePath, { cwd });
+    const lastTag = await getLastTagForModule(modulePath, { cwd });
     
     // Get commits since that tag
     const range = lastTag ? `${lastTag}..HEAD` : '';
@@ -46,20 +46,13 @@ export async function getCommitsInRange(
 ): Promise<CommitInfo[]> {
   const cwd = options.cwd || process.cwd();
   
-  let gitCommand = `git log --format="%H%n%s%n%b%n---COMMIT-END---" ${range}`;
-  
-  if (pathFilter) {
-    gitCommand += ` -- ${pathFilter}`;
-  }
-  
   try {
-    const output = execSync(gitCommand, { 
-      cwd, 
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'] 
+    const { stdout } = await getExecOutput('git', ['log', '--format=%H%n%s%n%b%n---COMMIT-END---', range, ...(pathFilter ? ['--', pathFilter] : [])], {
+      cwd,
+      silent: true
     });
     
-    return parseGitLog(output);
+    return parseGitLog(stdout);
   } catch (error) {
     core.warning(`Warning: Failed to get git commits: ${error}`);
     return [];
@@ -114,32 +107,32 @@ function parseGitLog(output: string): CommitInfo[] {
 /**
  * Get the last tag for a specific module
  */
-export function getLastTagForModule(
+export async function getLastTagForModule(
   modulePath: string,
   options: GitOptions = {}
-): string | null {
+): Promise<string | null> {
   const cwd = options.cwd || process.cwd();
   
   try {
     // Try to find module-specific tags first (e.g., module@1.0.0)
     const moduleTagPattern = getModuleTagPattern(modulePath);
     
-    let output = execSync(
-      `git tag -l "${moduleTagPattern}" --sort=-version:refname`,
-      { cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
-    );
+    const { stdout } = await getExecOutput('git', ['tag', '-l', moduleTagPattern, '--sort=-version:refname'], {
+      cwd,
+      silent: true
+    });
     
-    if (output.trim()) {
-      return output.trim().split('\n')[0];
+    if (stdout.trim()) {
+      return stdout.trim().split('\n')[0];
     }
     
     // Fallback to general tags
-    output = execSync(
-      'git describe --tags --abbrev=0 HEAD',
-      { cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
-    );
+    const { stdout: fallbackOutput } = await getExecOutput('git', ['describe', '--tags', '--abbrev=0', 'HEAD'], {
+      cwd,
+      silent: true
+    });
     
-    return output.trim();
+    return fallbackOutput.trim();
   } catch (error) {
     return null;
   }
@@ -148,20 +141,20 @@ export function getLastTagForModule(
 /**
  * Get all tags in the repository
  */
-export function getAllTags(options: GitOptions = {}): GitTag[] {
+export async function getAllTags(options: GitOptions = {}): Promise<GitTag[]> {
   const cwd = options.cwd || process.cwd();
   
   try {
-    const output = execSync(
-      'git tag -l --format="%(refname:short) %(objectname)"',
-      { cwd, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
-    );
+    const { stdout } = await getExecOutput('git', ['tag', '-l', '--format=%(refname:short) %(objectname)'], {
+      cwd,
+      silent: true
+    });
     
-    return output
+    return stdout
       .trim()
       .split('\n')
-      .filter(line => line.trim())
-      .map(line => {
+      .filter((line: string) => line.trim())
+      .map((line: string) => {
         const [name, hash] = line.split(' ');
         const { module, version } = parseTagName(name);
         
@@ -180,18 +173,17 @@ export function getAllTags(options: GitOptions = {}): GitTag[] {
 /**
  * Create a git tag
  */
-export function createTag(
+export async function createTag(
   tagName: string,
   message: string,
   options: GitOptions = {}
-): void {
+): Promise<void> {
   const cwd = options.cwd || process.cwd();
   
   try {
-    execSync(
-      `git tag -a "${tagName}" -m "${message}"`,
-      { cwd, stdio: 'inherit' }
-    );
+    await exec('git', ['tag', '-a', tagName, '-m', message], {
+      cwd
+    });
   } catch (error) {
     throw new Error(`Failed to create tag ${tagName}: ${error}`);
   }
@@ -200,11 +192,11 @@ export function createTag(
 /**
  * Push tags to remote
  */
-export function pushTags(options: GitOptions = {}): void {
+export async function pushTags(options: GitOptions = {}): Promise<void> {
   const cwd = options.cwd || process.cwd();
   
   try {
-    execSync('git push --tags', { cwd, stdio: 'inherit' });
+    await exec('git', ['push', '--tags'], { cwd });
   } catch (error) {
     throw new Error(`Failed to push tags: ${error}`);
   }
@@ -245,17 +237,16 @@ function parseTagName(tagName: string): { module?: string; version?: string } {
 /**
  * Check if the working directory is clean
  */
-export function isWorkingDirectoryClean(options: GitOptions = {}): boolean {
+export async function isWorkingDirectoryClean(options: GitOptions = {}): Promise<boolean> {
   const cwd = options.cwd || process.cwd();
   
   try {
-    const output = execSync('git status --porcelain', {
+    const { stdout } = await getExecOutput('git', ['status', '--porcelain'], {
       cwd,
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore']
+      silent: true
     });
     
-    return output.trim() === '';
+    return stdout.trim() === '';
   } catch (error) {
     return false;
   }
@@ -264,17 +255,16 @@ export function isWorkingDirectoryClean(options: GitOptions = {}): boolean {
 /**
  * Get the current branch name
  */
-export function getCurrentBranch(options: GitOptions = {}): string {
+export async function getCurrentBranch(options: GitOptions = {}): Promise<string> {
   const cwd = options.cwd || process.cwd();
   
   try {
-    const output = execSync('git branch --show-current', {
+    const { stdout } = await getExecOutput('git', ['branch', '--show-current'], {
       cwd,
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore']
+      silent: true
     });
     
-    return output.trim();
+    return stdout.trim();
   } catch (error) {
     throw new Error(`Failed to get current branch: ${error}`);
   }

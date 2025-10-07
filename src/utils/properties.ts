@@ -1,83 +1,5 @@
 import { promises as fs } from 'fs';
-import { parseSemVer, isValidVersionString } from '../semver/index.js';
-import { SemVer } from 'semver';
-
-/**
- * Parse a generic properties file into key-value pairs
- * Supports both '=' and ':' as delimiters
- * Skips comments (lines starting with # or !) and empty lines
- */
-export async function parseProperties(propertiesPath: string): Promise<Map<string, string>> {
-  const content = await fs.readFile(propertiesPath, 'utf8');
-  const properties = new Map<string, string>();
-  
-  // Parse all properties line by line
-  const lines = content.split('\n');
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    
-    // Skip comments and empty lines
-    if (trimmedLine.startsWith('#') || trimmedLine.startsWith('!') || !trimmedLine) {
-      continue;
-    }
-    
-    // Parse property: key=value or key:value
-    const match = trimmedLine.match(/^([^=:]+)[=:]\s*(.+)$/);
-    if (!match) {
-      continue;
-    }
-    
-    const [, key, value] = match;
-    const trimmedKey = key.trim();
-    const trimmedValue = value.trim();
-    
-    properties.set(trimmedKey, trimmedValue);
-  }
-  
-  return properties;
-}
-
-/**
- * Parse properties file and extract all version properties with SemVer values
- * @param propertiesPath Path to the properties file
- * @returns Map of version property keys to SemVer objects
- */
-export async function parseVersionProperties(
-  propertiesPath: string
-): Promise<Map<string, SemVer>> {
-  const properties = await parseProperties(propertiesPath);
-  const versionProperties = new Map<string, SemVer>();
-  
-  for (const [key, value] of properties) {
-    // Check if key matches version pattern (ends with '.version' or is exactly 'version')
-    if (!key.endsWith('.version') && key !== 'version') {
-      continue;
-    }
-    
-    // Validate and parse version
-    if (!isValidVersionString(value)) {
-      throw new Error(`Invalid version format in properties file: "${key}=${value}". Expected semantic version format (e.g., "1.2.3", "2.0.0-beta.1")`);
-    }
-    
-    const semVer = parseSemVer(value);
-    versionProperties.set(key, semVer);
-  }
-  
-  return versionProperties;
-}
-
-/**
- * Check if a file exists
- */
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { fileExists } from './file.js';
 
 /**
  * Update or insert a property in a properties file
@@ -90,28 +12,54 @@ export async function upsertProperty(
   key: string,
   value: string
 ): Promise<void> {
+  await upsertProperties(propertiesPath, new Map([[key, value]]));
+}
+
+/**
+ * Update or insert multiple properties in a properties file in one operation
+ * @param propertiesPath Path to the properties file
+ * @param properties Map of property keys to values to update or insert
+ */
+export async function upsertProperties(
+  propertiesPath: string,
+  properties: Map<string, string>
+): Promise<void> {
+  if (properties.size === 0) {
+    return; // Nothing to update
+  }
+
   const exists = await fileExists(propertiesPath);
   
-  let updatedContent: string
+  let updatedContent: string;
+  
   if (exists) {
     // File exists, read and update it
-    const content = await fs.readFile(propertiesPath, 'utf8');
+    let content = await fs.readFile(propertiesPath, 'utf8');
     
-    // Look for existing property (escape special regex characters in key)
-    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const propertyRegex = new RegExp(`^${escapedKey}\\s*[=:]\\s*.*$`, 'm');
-    
-    if (propertyRegex.test(content)) {
-      // Update existing property
-      updatedContent = content.replace(propertyRegex, `${key}=${value}`);
-    } else {
-      // Add new property at the end
-      const separator = content.endsWith('\n') ? '' : '\n';
-      updatedContent = content + separator + `${key}=${value}\n`;
+    // Process each property update
+    for (const [key, value] of properties) {
+      // Look for existing property (escape special regex characters in key)
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const propertyRegex = new RegExp(`^${escapedKey}\\s*[=:]\\s*.*$`, 'm');
+      
+      if (propertyRegex.test(content)) {
+        // Update existing property
+        content = content.replace(propertyRegex, `${key}=${value}`);
+      } else {
+        // Add new property at the end
+        const separator = content.endsWith('\n') ? '' : '\n';
+        content = content + separator + `${key}=${value}\n`;
+      }
     }
+    
+    updatedContent = content;
   } else {
     // File doesn't exist, create new properties file
-    updatedContent = `${key}=${value}\n`;
+    const lines: string[] = [];
+    for (const [key, value] of properties) {
+      lines.push(`${key}=${value}`);
+    }
+    updatedContent = lines.join('\n') + '\n';
   }
 
   await fs.writeFile(propertiesPath, updatedContent, 'utf8');

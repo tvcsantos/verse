@@ -15,14 +15,15 @@ export type BumpType = 'major' | 'minor' | 'patch' | 'none';
 export type ChangeReason = 'commits' | 'dependency' | 'cascade';
 
 /**
- * General interface for version management operations.
- * Implementations handle build-system-specific version updates.
+ * Strategy interface for build-system specific operations.
+ * Implementations provide build-system specific logic for version updates.
  */
-export interface VersionManager {
+export interface VersionUpdateStrategy {
   /**
-   * Update the version of a module using the build system's version management approach
+   * Write version updates for modules to the build system's version files.
+   * @param moduleVersions Map of module IDs to their new version strings
    */
-  updateVersion(moduleId: string, newVersion: SemVer): Promise<void>;
+  writeVersionUpdates(moduleVersions: Map<string, string>): Promise<void>;
 }
 
 export interface CommitInfo {
@@ -42,4 +43,22 @@ export interface ModuleDetector {
    * Detect all modules in the repository and return a hierarchy manager
    */
   detect(): Promise<HierarchyModuleManager>;
+}
+
+/**
+ * Factory interface for creating module system components.
+ * Each build system (Gradle, Maven, npm, etc.) should implement this interface.
+ */
+export interface ModuleSystemFactory {
+  /**
+   * Create a module detector for this build system.
+   * @returns ModuleDetector instance
+   */
+  createDetector(): ModuleDetector;
+  
+  /**
+   * Create a version update strategy for this build system.
+   * @returns VersionUpdateStrategy instance
+   */
+  createVersionUpdateStrategy(): VersionUpdateStrategy;
 }
