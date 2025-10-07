@@ -19,8 +19,6 @@
     "strictCompatibility": false
   },
   "gradle": {
-    "versionSource": ["version-catalog", "gradle.properties", "build.gradle.kts"],
-    "updateVersionCatalog": true,
-    "versionCatalogPath": "gradle/libs.versions.toml"
+    "versionSource": ["version-catalog", "gradle.properties", "build.gradle.kts"]
   }
 }
