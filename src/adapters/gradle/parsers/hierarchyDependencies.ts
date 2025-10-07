@@ -36,8 +36,13 @@ export async function executeGradleHierarchyCommand(projectRoot: string): Promis
   
   const result = await getExecOutput(gradlew, args, {
     cwd: projectRoot,
-    silent: true
+    silent: true,
+    ignoreReturnCode: true
   });
+
+  if (result.exitCode !== 0) {
+    throw new Error(`Gradle command failed with exit code ${result.exitCode}: ${result.stderr}`);
+  }
   
   return result.stdout.trim();
 }
