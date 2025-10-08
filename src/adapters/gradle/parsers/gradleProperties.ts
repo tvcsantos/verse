@@ -28,9 +28,11 @@ export function moduleIdToVersionPropertyName(moduleId: string): string {
   if (moduleId === ':') {
     return 'version';
   }
+
+  const name = moduleId.split(':').at(-1);
+  if (!name) {
+    throw new Error(`Invalid module ID: ${moduleId}`);
+  }
   
-  // Remove leading colon and convert colons to dots: ":x:y" -> "x.y"
-  const dotPath = moduleId.substring(1).replaceAll(':', '.');
-  
-  return dotPath + '.version';
+  return name + '.version';
 }

@@ -12,12 +12,12 @@ describe('Gradle Properties Parser', () => {
     });
 
     it('should convert multi-level module to property name', () => {
-      expect(moduleIdToVersionPropertyName(':x:y')).toBe('x.y.version');
-      expect(moduleIdToVersionPropertyName(':spring:core')).toBe('spring.core.version');
+      expect(moduleIdToVersionPropertyName(':x:y')).toBe('y.version');
+      expect(moduleIdToVersionPropertyName(':spring:core')).toBe('core.version');
     });
 
     it('should handle complex module paths', () => {
-      expect(moduleIdToVersionPropertyName(':a:b:c:d')).toBe('a.b.c.d.version');
+      expect(moduleIdToVersionPropertyName(':a:b:c:d-b')).toBe('d-b.version');
     });
   });
 });
