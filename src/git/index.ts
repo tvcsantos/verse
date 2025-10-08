@@ -121,7 +121,7 @@ export async function getLastTagForModule(
     
     const { stdout } = await getExecOutput('git', ['tag', '-l', moduleTagPattern, '--sort=-version:refname'], {
       cwd,
-      silent: true
+      //silent: true
     });
     
     if (stdout.trim()) {
@@ -131,7 +131,7 @@ export async function getLastTagForModule(
     // Fallback to general tags
     const { stdout: fallbackOutput } = await getExecOutput('git', ['describe', '--tags', '--abbrev=0', 'HEAD'], {
       cwd,
-      silent: true
+      //silent: true
     });
     
     return fallbackOutput.trim();
@@ -149,7 +149,7 @@ export async function getAllTags(options: GitOptions = {}): Promise<GitTag[]> {
   try {
     const { stdout } = await getExecOutput('git', ['tag', '-l', '--format=%(refname:short) %(objectname)'], {
       cwd,
-      silent: true
+      //silent: true
     });
     
     return stdout
@@ -245,7 +245,7 @@ export async function isWorkingDirectoryClean(options: GitOptions = {}): Promise
   try {
     const { stdout } = await getExecOutput('git', ['status', '--porcelain'], {
       cwd,
-      silent: true
+      //silent: true
     });
     
     return stdout.trim() === '';
@@ -263,7 +263,7 @@ export async function getCurrentBranch(options: GitOptions = {}): Promise<string
   try {
     const { stdout } = await getExecOutput('git', ['branch', '--show-current'], {
       cwd,
-      silent: true
+      //silent: true
     });
     
     return stdout.trim();
