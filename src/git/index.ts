@@ -45,11 +45,13 @@ export async function getCommitsInRange(
   options: GitOptions = {}
 ): Promise<CommitInfo[]> {
   const cwd = options.cwd || process.cwd();
+
+  core.info(`cwd: ${cwd}, range: ${range}, pathFilter: ${pathFilter}`);
   
   try {
     const { stdout } = await getExecOutput('git', ['log', '--format=%H%n%s%n%b%n---COMMIT-END---', range, ...(pathFilter ? ['--', pathFilter] : [])], {
       cwd,
-      silent: true
+      //silent: true
     });
     
     return parseGitLog(stdout);
