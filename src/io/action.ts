@@ -74,7 +74,7 @@ export async function run(): Promise<void> {
     if (result.bumped) {
       core.info(`✅ Successfully updated ${result.changedModules.length} modules`);
       for (const module of result.changedModules) {
-        core.info(`  ${module.name}: ${module.from} → ${module.to} (${module.bumpType})`);
+        core.info(`  ${module.id}: ${module.from} → ${module.to} (${module.bumpType})`);
       }
       
       if (result.createdTags.length > 0) {

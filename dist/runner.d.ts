@@ -12,7 +12,7 @@ export interface RunnerOptions {
 export interface RunnerResult {
     bumped: boolean;
     changedModules: Array<{
-        name: string;
+        id: string;
         from: string;
         to: string;
         bumpType: BumpType;

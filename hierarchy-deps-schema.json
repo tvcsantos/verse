@@ -7,6 +7,10 @@
     ".*": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the project"
+        },
         "path": {
           "type": "string",
           "description": "Relative file system path to the project directory"
@@ -26,7 +30,7 @@
           "uniqueItems": true
         }
       },
-      "required": ["path", "version", "affectedSubprojects"],
+      "required": ["name", "path", "version", "affectedSubprojects"],
       "additionalProperties": false
     }
   },
@@ -34,26 +38,31 @@
   "examples": [
     {
       ":": {
+        "name": "io.mb:mbio-starter",
         "path": ".",
         "version": "1.0.0",
         "affectedSubprojects": [":base", ":spring", ":spring:core", ":spring:servlet"]
       },
       ":base": {
+        "name": "io.mb:base",
         "path": "base",
         "version": "1.0.0",
         "affectedSubprojects": []
       },
       ":spring": {
+        "name": "io.mb:spring",
         "path": "spring",
         "version": "1.0.0",
         "affectedSubprojects": [":spring:core", ":spring:servlet"]
       },
       ":spring:core": {
+        "name": "io.mb:spring-core",
         "path": "spring/core",
         "version": "1.0.0",
         "affectedSubprojects": []
       },
       ":spring:servlet": {
+        "name": "io.mb:spring-servlet",
         "path": "spring/servlet",
         "version": "1.0.0",
         "affectedSubprojects": []

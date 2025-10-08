@@ -65,6 +65,7 @@ export function parseHierarchyStructure(hierarchy: ProjectHierarchy, repoRoot: s
     }
     projectMap.set(projectId, {
       id: projectId,
+      name: projectNode.name,
       path: projectNode.path,
       type: projectNode.type,
       affectedProjects: new Set(projectNode.affectedSubprojects),

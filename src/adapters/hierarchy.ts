@@ -10,6 +10,8 @@ import { SemVer } from "semver";
  * Represents a single project in the hierarchy with its dependencies
  */
 export interface ProjectNode {
+  /** Human-readable name of the project */
+  name: string;
   /** Path from repository root to the project directory */
   path: string;
   /** List of subproject ids that are affected when this project changes */
@@ -36,6 +38,8 @@ export interface ProjectHierarchy {
 export interface ProjectInfo {
   /** Project identifier (e.g., ":", ":base", ":spring:core" for Gradle) */
   id: string;
+  /** Human-readable name of the project */
+  name: string;
   /** Path from repository root to the project directory */
   path: string;
   /** Project type indicating if it's the root project or a submodule */

@@ -40,7 +40,7 @@ export interface RunnerOptions {
 export interface RunnerResult {
   bumped: boolean;
   changedModules: Array<{
-    name: string;
+    id: string;
     from: string;
     to: string;
     bumpType: BumpType;
@@ -171,13 +171,13 @@ export class MonorepoVersionRunner {
       return {
         bumped: true,
         changedModules: allChanges.map(change => ({
-          name: change.module.id,
+          id: change.module.id,
           from: formatSemVer(change.fromVersion),
           to: formatSemVer(change.toVersion),
           bumpType: change.bumpType,
         })),
         createdTags: allChanges.map(change => 
-          `${change.module.id}@${formatSemVer(change.toVersion)}`
+          `${change.module.name}@${formatSemVer(change.toVersion)}`
         ),
         changelogPaths: [],
       };
@@ -212,8 +212,8 @@ export class MonorepoVersionRunner {
     if (this.options.pushTags) {
       core.info('🏷️ Creating tags...');
       for (const change of allChanges) {
-        const tagName = `${change.module.id}@${formatSemVer(change.toVersion)}`;
-        const message = `Release ${change.module.id} v${formatSemVer(change.toVersion)}`;
+        const tagName = `${change.module.name}@${formatSemVer(change.toVersion)}`;
+        const message = `Release ${change.module.name} v${formatSemVer(change.toVersion)}`;
         
         createTag(tagName, message, { cwd: this.options.repoRoot });
         createdTags.push(tagName);
@@ -230,7 +230,7 @@ export class MonorepoVersionRunner {
     return {
       bumped: true,
       changedModules: allChanges.map(change => ({
-        name: change.module.id,
+        id: change.module.id,
         from: formatSemVer(change.fromVersion),
         to: formatSemVer(change.toVersion),
         bumpType: change.bumpType,
