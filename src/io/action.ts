@@ -33,6 +33,10 @@ export async function run(): Promise<void> {
     const configPath = core.getInput('config-path') || '.versioningrc.json';
     const createReleases = parseBooleanInput(core.getInput('create-releases'));
     const pushTags = parseBooleanInput(core.getInput('push-tags'));
+    const prereleaseMode = parseBooleanInput(core.getInput('prerelease-mode'));
+    const prereleaseId = core.getInput('prerelease-id') || 'SNAPSHOT';
+    const bumpUnchanged = parseBooleanInput(core.getInput('bump-unchanged'));
+    const addBuildMetadata = parseBooleanInput(core.getInput('add-build-metadata'));
 
     // Get repository root (GitHub Actions sets GITHUB_WORKSPACE)
     const repoRoot = process.env.GITHUB_WORKSPACE || process.cwd();
@@ -43,6 +47,12 @@ export async function run(): Promise<void> {
     core.info(`Config: ${configPath}`);
     core.info(`Release branches: ${releaseBranches.join(', ')}`);
     core.info(`Dry run: ${dryRun}`);
+    core.info(`Prerelease mode: ${prereleaseMode}`);
+    if (prereleaseMode) {
+      core.info(`Prerelease ID: ${prereleaseId}`);
+      core.info(`Bump unchanged modules: ${bumpUnchanged}`);
+    }
+    core.info(`Add build metadata: ${addBuildMetadata}`);
 
     // Create runner options
     const options: RunnerOptions = {
@@ -54,6 +64,10 @@ export async function run(): Promise<void> {
       createReleases,
       pushTags,
       fetchDepth,
+      prereleaseMode,
+      prereleaseId,
+      bumpUnchanged,
+      addBuildMetadata,
     };
 
     // Run the version manager

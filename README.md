@@ -10,7 +10,8 @@ This TypeScript GitHub Action manages semantic versions for projects in a monore
 ✅ **Gradle Adapter** - First-class support for Gradle (Groovy & Kotlin DSL)  
 ✅ **Extensible Architecture** - Easy to add adapters for other ecosystems  
 ✅ **Changelog Generation** - Automatic per-module changelog generation  
-✅ **GitHub Integration** - Creates tags and releases automatically
+✅ **GitHub Integration** - Creates tags and releases automatically  
+✅ **Pre-release Support** - Generate SNAPSHOT, alpha, beta, or custom pre-release versions
 
 ## Usage
 
@@ -42,6 +43,32 @@ jobs:
           echo "Changed: ${{ steps.versioner.outputs['changed-modules'] }}"
 ```
 
+### Pre-release/Snapshot Versions
+
+For development builds or SNAPSHOT versions:
+
+```yaml
+name: Development Build
+on:
+  push:
+    branches: [ "develop" ]
+
+jobs:
+  snapshot-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create SNAPSHOT versions
+        uses: your-org/monorepo-versioner@v1
+        with:
+          adapter: gradle
+          prerelease-mode: true
+          prerelease-id: SNAPSHOT
+          bump-unchanged: true
+```
+
 ## Action Inputs
 
 | Input | Description | Default |
@@ -53,6 +80,12 @@ jobs:
 | `config-path` | Path to config file | `.versioningrc.json` |
 | `create-releases` | Create GitHub Releases | `false` |
 | `push-tags` | Push tags to remote | `true` |
+| `prerelease-mode` | Generate pre-release versions | `false` |
+| `prerelease-id` | Pre-release identifier | `SNAPSHOT` |
+| `bump-unchanged` | Bump modules with no changes in prerelease mode | `false` |
+| `add-build-metadata` | Add build metadata with short SHA to all versions | `false` |
+
+> 📖 **Detailed Pre-release Documentation**: See [PRERELEASE.md](PRERELEASE.md) for comprehensive examples and use cases.
 
 ## Action Outputs
 

@@ -89,3 +89,71 @@ export function isValidVersionString(versionString: string): boolean {
 export function createInitialVersion(): SemVer {
   return new SemVer('0.0.0');
 }
+
+/**
+ * Bump a version to a pre-release version
+ */
+export function bumpToPrerelease(version: SemVer, bumpType: BumpType, prereleaseId: string): SemVer {
+  if (bumpType === 'none') {
+    // If no changes, convert current version to prerelease
+    if (version.prerelease.length > 0) {
+      // Already a prerelease, increment the prerelease version
+      const bumpedVersionString = semver.inc(version, 'prerelease', prereleaseId);
+      if (!bumpedVersionString) {
+        throw new Error(`Failed to bump prerelease version ${version.version}`);
+      }
+      return parseSemVer(bumpedVersionString);
+    } else {
+      // Convert to prerelease by bumping patch and adding prerelease identifier
+      const bumpedVersionString = semver.inc(version, 'prepatch', prereleaseId);
+      if (!bumpedVersionString) {
+        throw new Error(`Failed to create prerelease version from ${version.version}`);
+      }
+      return parseSemVer(bumpedVersionString);
+    }
+  }
+
+  // Bump to prerelease version based on bump type
+  let prereleaseType: semver.ReleaseType;
+  switch (bumpType) {
+    case 'patch':
+      prereleaseType = 'prepatch';
+      break;
+    case 'minor':
+      prereleaseType = 'preminor';
+      break;
+    case 'major':
+      prereleaseType = 'premajor';
+      break;
+    default:
+      throw new Error(`Invalid bump type for prerelease: ${bumpType}`);
+  }
+
+  const bumpedVersionString = semver.inc(version, prereleaseType, prereleaseId);
+  if (!bumpedVersionString) {
+    throw new Error(`Failed to bump version ${version.version} to prerelease with type ${prereleaseType}`);
+  }
+  
+  return parseSemVer(bumpedVersionString);
+}
+
+/**
+ * Add build metadata to a version
+ */
+export function addBuildMetadata(version: SemVer, buildMetadata: string): SemVer {
+  // Create new version string with build metadata
+  const versionBase = `${version.major}.${version.minor}.${version.patch}`;
+  const prereleaseString = version.prerelease.length > 0 ? `-${version.prerelease.join('.')}` : '';
+  const newVersionString = `${versionBase}${prereleaseString}+${buildMetadata}`;
+  
+  return parseSemVer(newVersionString);
+}
+
+/**
+ * Add build metadata to a version and return as string (since semver lib doesn't preserve build metadata in SemVer objects)
+ */
+export function addBuildMetadataAsString(version: SemVer, buildMetadata: string): string {
+  const versionBase = `${version.major}.${version.minor}.${version.patch}`;
+  const prereleaseString = version.prerelease.length > 0 ? `-${version.prerelease.join('.')}` : '';
+  return `${versionBase}${prereleaseString}+${buildMetadata}`;
+}

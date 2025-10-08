@@ -33,4 +33,16 @@ export declare function isValidVersionString(versionString: string): boolean;
  * Create initial version (0.0.0) using node-semver
  */
 export declare function createInitialVersion(): SemVer;
+/**
+ * Bump a version to a pre-release version
+ */
+export declare function bumpToPrerelease(version: SemVer, bumpType: BumpType, prereleaseId: string): SemVer;
+/**
+ * Add build metadata to a version
+ */
+export declare function addBuildMetadata(version: SemVer, buildMetadata: string): SemVer;
+/**
+ * Add build metadata to a version and return as string (since semver lib doesn't preserve build metadata in SemVer objects)
+ */
+export declare function addBuildMetadataAsString(version: SemVer, buildMetadata: string): string;
 //# sourceMappingURL=index.d.ts.map

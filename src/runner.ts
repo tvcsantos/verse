@@ -14,12 +14,13 @@ import {
   createTag,
   pushTags,
   getCurrentBranch,
-  isWorkingDirectoryClean
+  isWorkingDirectoryClean,
+  getCurrentCommitShortSha
 } from './git/index.js';
 import { 
   calculateCascadeEffects
 } from './graph/index.js';
-import { bumpSemVer, formatSemVer } from './semver/index.js';
+import { bumpSemVer, bumpToPrerelease, formatSemVer, addBuildMetadataAsString } from './semver/index.js';
 import { 
   generateChangelogsForModules,
   generateRootChangelog
@@ -35,6 +36,10 @@ export interface RunnerOptions {
   createReleases: boolean;
   pushTags: boolean;
   fetchDepth: number;
+  prereleaseMode: boolean;
+  prereleaseId: string;
+  bumpUnchanged: boolean;
+  addBuildMetadata: boolean;
 }
 
 export interface RunnerResult {
@@ -113,6 +118,13 @@ export class MonorepoVersionRunner {
       moduleCommits.set(projectId, commits);
     }
 
+    // Get current commit short SHA if build metadata is enabled
+    let shortSha: string | undefined;
+    if (this.options.addBuildMetadata) {
+      shortSha = await getCurrentCommitShortSha({ cwd: this.options.repoRoot });
+      core.info(`📋 Build metadata will include short SHA: ${shortSha}`);
+    }
+
     // Calculate version bumps for each module
     core.info('🔢 Calculating version bumps...');
     const moduleChanges: ModuleChange[] = [];
@@ -124,15 +136,59 @@ export class MonorepoVersionRunner {
       // Determine bump type from commits
       const bumpType = calculateBumpFromCommits(commits, this.config);
       
-      if (bumpType !== 'none') {
-        const newVersion = bumpSemVer(currentVersion, bumpType);
+      // Handle version bumping based on mode
+      let shouldBump = bumpType !== 'none';
+      let actualBumpType = bumpType;
+      let reason: 'commits' | 'prerelease-unchanged' | 'build-metadata' = 'commits';
+      
+      // In prerelease mode with bumpUnchanged, also bump modules with no changes
+      if (this.options.prereleaseMode && this.options.bumpUnchanged && bumpType === 'none') {
+        shouldBump = true;
+        actualBumpType = 'none'; // Will be handled by bumpToPrerelease
+        reason = 'prerelease-unchanged';
+      }
+      
+      // When build metadata is enabled, all modules should be updated
+      if (this.options.addBuildMetadata && bumpType === 'none' && !shouldBump) {
+        shouldBump = true;
+        actualBumpType = 'none';
+        reason = 'build-metadata';
+      }
+      
+      if (shouldBump) {
+        let newVersion;
+        let newVersionString;
+        
+        if (actualBumpType === 'none' && reason === 'build-metadata') {
+          // Only add build metadata to existing version without bumping
+          newVersion = currentVersion;
+          newVersionString = addBuildMetadataAsString(currentVersion, shortSha!);
+        } else {
+          // Normal version bump
+          if (this.options.prereleaseMode) {
+            newVersion = bumpToPrerelease(currentVersion, actualBumpType, this.options.prereleaseId);
+          } else {
+            newVersion = bumpSemVer(currentVersion, actualBumpType);
+          }
+          
+          // Add build metadata if enabled
+          if (this.options.addBuildMetadata && shortSha) {
+            newVersionString = addBuildMetadataAsString(newVersion, shortSha);
+          } else {
+            newVersionString = formatSemVer(newVersion);
+          }
+        }
+        
         moduleChanges.push({
           module: projectInfo,
           fromVersion: currentVersion,
           toVersion: newVersion,
-          bumpType,
-          reason: 'commits',
+          bumpType: actualBumpType,
+          reason: reason,
         });
+        
+        // Store the final version string with build metadata for later use
+        (moduleChanges[moduleChanges.length - 1] as any).finalVersionString = newVersionString;
       }
     }
 
@@ -148,7 +204,21 @@ export class MonorepoVersionRunner {
     for (const change of cascadeResult.changes) {
       if (change.reason === 'cascade') {
         change.fromVersion = change.module.version; // Get version directly from ProjectInfo
-        change.toVersion = bumpSemVer(change.fromVersion, change.bumpType);
+        
+        let newVersion;
+        if (this.options.prereleaseMode) {
+          newVersion = bumpToPrerelease(change.fromVersion, change.bumpType, this.options.prereleaseId);
+        } else {
+          newVersion = bumpSemVer(change.fromVersion, change.bumpType);
+        }
+        
+        change.toVersion = newVersion;
+        
+        // Add build metadata to cascade changes if enabled
+        if (this.options.addBuildMetadata && shortSha) {
+          const finalVersionString = addBuildMetadataAsString(newVersion, shortSha);
+          (change as any).finalVersionString = finalVersionString;
+        }
       }
     }
 
@@ -175,15 +245,19 @@ export class MonorepoVersionRunner {
       core.info('🏃‍♂️ Dry run mode - no changes will be written');
       return {
         bumped: true,
-        changedModules: allChanges.map(change => ({
-          id: change.module.id,
-          from: formatSemVer(change.fromVersion),
-          to: formatSemVer(change.toVersion),
-          bumpType: change.bumpType,
-        })),
-        createdTags: allChanges.map(change => 
-          `${change.module.name}@${formatSemVer(change.toVersion)}`
-        ),
+        changedModules: allChanges.map(change => {
+          const finalVersionString = (change as any).finalVersionString;
+          return {
+            id: change.module.id,
+            from: formatSemVer(change.fromVersion),
+            to: finalVersionString || formatSemVer(change.toVersion),
+            bumpType: change.bumpType,
+          };
+        }),
+        createdTags: allChanges.map(change => {
+          const finalVersionString = (change as any).finalVersionString;
+          return `${change.module.name}@${finalVersionString || formatSemVer(change.toVersion)}`;
+        }),
         changelogPaths: [],
       };
     }
@@ -191,8 +265,16 @@ export class MonorepoVersionRunner {
     // Stage new versions in memory
     core.info('✍️ Staging new versions...');
     for (const change of allChanges) {
-      this.versionManager.updateVersion(change.module.id, change.toVersion);
-      core.info(`  Staged ${change.module.id} to ${formatSemVer(change.toVersion)}`);
+      const finalVersionString = (change as any).finalVersionString;
+      if (finalVersionString) {
+        // Use string version for build metadata
+        this.versionManager.updateVersionString(change.module.id, finalVersionString);
+        core.info(`  Staged ${change.module.id} to ${finalVersionString}`);
+      } else {
+        // Use SemVer version for normal cases
+        this.versionManager.updateVersion(change.module.id, change.toVersion);
+        core.info(`  Staged ${change.module.id} to ${formatSemVer(change.toVersion)}`);
+      }
     }
 
     // Commit all version updates to files
@@ -234,12 +316,15 @@ export class MonorepoVersionRunner {
 
     return {
       bumped: true,
-      changedModules: allChanges.map(change => ({
-        id: change.module.id,
-        from: formatSemVer(change.fromVersion),
-        to: formatSemVer(change.toVersion),
-        bumpType: change.bumpType,
-      })),
+      changedModules: allChanges.map(change => {
+        const finalVersionString = (change as any).finalVersionString;
+        return {
+          id: change.module.id,
+          from: formatSemVer(change.fromVersion),
+          to: finalVersionString || formatSemVer(change.toVersion),
+          bumpType: change.bumpType,
+        };
+      }),
       createdTags,
       changelogPaths,
     };

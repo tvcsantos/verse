@@ -9,6 +9,7 @@ import { formatSemVer } from '../semver/index.js';
  */
 export class VersionManager {
   private readonly pendingVersionUpdates = new Map<string, SemVer>();
+  private readonly pendingVersionStringUpdates = new Map<string, string>();
 
   constructor(
     private readonly hierarchyManager: HierarchyModuleManager,
@@ -29,20 +30,38 @@ export class VersionManager {
   }
 
   /**
+   * Stage a version update using a version string (for build metadata support).
+   * The update will be persisted when commit() is called.
+   */
+  updateVersionString(moduleId: string, versionString: string): void {
+    if (!this.hierarchyManager.hasModule(moduleId)) {
+        throw new Error(`Module ${moduleId} not found`);
+    }
+    
+    // Store the update in memory - we'll parse it later if needed
+    this.pendingVersionStringUpdates.set(moduleId, versionString);
+  }
+
+  /**
    * Commit all pending version updates to the build system's version files.
    * This method performs all file writes at once to avoid multiple I/O operations.
    * Uses the strategy pattern to delegate build-system specific operations.
    */
   async commit(): Promise<void> {
-    if (this.pendingVersionUpdates.size === 0) {
+    if (this.pendingVersionUpdates.size === 0 && this.pendingVersionStringUpdates.size === 0) {
       return; // Nothing to commit
     }
 
-    // Convert SemVer objects to version strings
+    // Convert SemVer objects to version strings and merge with string updates
     const moduleVersions = new Map<string, string>();
     
     for (const [moduleId, newVersion] of this.pendingVersionUpdates) {
       const versionString = formatSemVer(newVersion);
+      moduleVersions.set(moduleId, versionString);
+    }
+
+    // Add string updates (these take priority for build metadata)
+    for (const [moduleId, versionString] of this.pendingVersionStringUpdates) {
       moduleVersions.set(moduleId, versionString);
     }
 
@@ -51,6 +70,7 @@ export class VersionManager {
 
     // Clear the pending updates after successful commit
     this.pendingVersionUpdates.clear();
+    this.pendingVersionStringUpdates.clear();
   }
 
   /**
@@ -65,7 +85,7 @@ export class VersionManager {
    * Check if there are any pending updates that need to be committed.
    */
   hasPendingUpdates(): boolean {
-    return this.pendingVersionUpdates.size > 0;
+    return this.pendingVersionUpdates.size > 0 || this.pendingVersionStringUpdates.size > 0;
   }
 
   /**
@@ -74,5 +94,6 @@ export class VersionManager {
    */
   clearPendingUpdates(): void {
     this.pendingVersionUpdates.clear();
+    this.pendingVersionStringUpdates.clear();
   }
 }

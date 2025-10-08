@@ -12,7 +12,7 @@ export interface ModuleChange {
 
 export type BumpType = 'major' | 'minor' | 'patch' | 'none';
 
-export type ChangeReason = 'commits' | 'dependency' | 'cascade';
+export type ChangeReason = 'commits' | 'dependency' | 'cascade' | 'prerelease-unchanged' | 'build-metadata';
 
 /**
  * Strategy interface for build-system specific operations.

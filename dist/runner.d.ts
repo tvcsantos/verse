@@ -8,6 +8,10 @@ export interface RunnerOptions {
     createReleases: boolean;
     pushTags: boolean;
     fetchDepth: number;
+    prereleaseMode: boolean;
+    prereleaseId: string;
+    bumpUnchanged: boolean;
+    addBuildMetadata: boolean;
 }
 export interface RunnerResult {
     bumped: boolean;

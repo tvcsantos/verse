@@ -40,4 +40,8 @@ export declare function isWorkingDirectoryClean(options?: GitOptions): Promise<b
  * Get the current branch name
  */
 export declare function getCurrentBranch(options?: GitOptions): Promise<string>;
+/**
+ * Get the current commit short SHA
+ */
+export declare function getCurrentCommitShortSha(options?: GitOptions): Promise<string>;
 //# sourceMappingURL=index.d.ts.map

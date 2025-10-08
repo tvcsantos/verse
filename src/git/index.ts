@@ -47,8 +47,6 @@ export async function getCommitsInRange(
   options: GitOptions = {}
 ): Promise<CommitInfo[]> {
   const cwd = options.cwd || process.cwd();
-
-  core.info(`cwd: ${cwd}, range: ${range}, pathFilter: ${pathFilter}`);
   
   try {
     const args = ['log', '--format=%H%n%s%n%b%n---COMMIT-END---'];
@@ -65,7 +63,7 @@ export async function getCommitsInRange(
     
     const { stdout } = await getExecOutput('git', args, {
       cwd,
-      //silent: true
+      silent: true
     });
     
     return parseGitLog(stdout);
@@ -138,7 +136,7 @@ export async function getLastTagForModule(
     if (moduleType !== 'root') {
       const { stdout } = await getExecOutput('git', ['tag', '-l', moduleTagPattern, '--sort=-version:refname'], {
         cwd,
-        //silent: true
+        silent: true
       });
       
       if (stdout.trim()) {
@@ -150,7 +148,7 @@ export async function getLastTagForModule(
     try {
       const { stdout: fallbackOutput } = await getExecOutput('git', ['describe', '--tags', '--abbrev=0', 'HEAD'], {
         cwd,
-        //silent: true
+        silent: true
       });
       
       return fallbackOutput.trim();
@@ -172,7 +170,7 @@ export async function getAllTags(options: GitOptions = {}): Promise<GitTag[]> {
   try {
     const { stdout } = await getExecOutput('git', ['tag', '-l', '--format=%(refname:short) %(objectname)'], {
       cwd,
-      //silent: true
+      silent: true
     });
     
     return stdout
@@ -267,7 +265,7 @@ export async function isWorkingDirectoryClean(options: GitOptions = {}): Promise
   try {
     const { stdout } = await getExecOutput('git', ['status', '--porcelain'], {
       cwd,
-      //silent: true
+      silent: true
     });
     
     return stdout.trim() === '';
@@ -285,11 +283,29 @@ export async function getCurrentBranch(options: GitOptions = {}): Promise<string
   try {
     const { stdout } = await getExecOutput('git', ['branch', '--show-current'], {
       cwd,
-      //silent: true
+      silent: true
     });
     
     return stdout.trim();
   } catch (error) {
     throw new Error(`Failed to get current branch: ${error}`);
+  }
+}
+
+/**
+ * Get the current commit short SHA
+ */
+export async function getCurrentCommitShortSha(options: GitOptions = {}): Promise<string> {
+  const cwd = options.cwd || process.cwd();
+  
+  try {
+    const { stdout } = await getExecOutput('git', ['rev-parse', '--short', 'HEAD'], {
+      cwd,
+      silent: true
+    });
+    
+    return stdout.trim();
+  } catch (error) {
+    throw new Error(`Failed to get current commit SHA: ${error}`);
   }
 }

@@ -9,12 +9,18 @@ export declare class VersionManager {
     private readonly hierarchyManager;
     private readonly strategy;
     private readonly pendingVersionUpdates;
+    private readonly pendingVersionStringUpdates;
     constructor(hierarchyManager: HierarchyModuleManager, strategy: VersionUpdateStrategy);
     /**
      * Stage a version update for a module in memory.
      * The update will be persisted when commit() is called.
      */
     updateVersion(moduleId: string, newVersion: SemVer): void;
+    /**
+     * Stage a version update using a version string (for build metadata support).
+     * The update will be persisted when commit() is called.
+     */
+    updateVersionString(moduleId: string, versionString: string): void;
     /**
      * Commit all pending version updates to the build system's version files.
      * This method performs all file writes at once to avoid multiple I/O operations.

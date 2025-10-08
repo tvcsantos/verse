@@ -44,8 +44,6 @@ export async function executeGradleHierarchyCommand(projectRoot: string): Promis
   if (result.exitCode !== 0) {
     throw new Error(`Gradle command failed with exit code ${result.exitCode}: ${result.stderr}`);
   }
-  
-  core.info(`Gradle command output: ${result.stdout}`);
 
   return result.stdout.trim();
 }

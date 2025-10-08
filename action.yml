@@ -30,6 +30,22 @@ inputs:
     description: 'Push tags to origin'
     required: false
     default: 'true'
+  prerelease-mode:
+    description: 'Generate pre-release versions instead of final versions'
+    required: false
+    default: 'false'
+  prerelease-id:
+    description: 'Pre-release identifier (e.g., alpha, beta, SNAPSHOT)'
+    required: false
+    default: 'SNAPSHOT'
+  bump-unchanged:
+    description: 'In prerelease mode, bump modules even when no changes are detected'
+    required: false
+    default: 'false'
+  add-build-metadata:
+    description: 'Add build metadata with short SHA to all versions'
+    required: false
+    default: 'false'
 outputs:
   bumped:
     description: 'Whether any module was bumped'
