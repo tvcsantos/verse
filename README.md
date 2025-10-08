@@ -102,6 +102,32 @@ This generates versions like: `1.2.3-alpha.20251008.1530+abc1234` where:
 - `alpha.20251008.1530` is the timestamp-based prerelease identifier (YYYYMMDD.HHMM format)
 - `abc1234` is the short SHA build metadata
 
+### Gradle SNAPSHOT Versions
+
+For Gradle projects using the conventional `-SNAPSHOT` suffix:
+
+```yaml
+name: Development Build
+on:
+  push:
+    branches: [ "develop" ]
+
+jobs:
+  gradle-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create Gradle SNAPSHOT versions
+        uses: your-org/monorepo-versioner@v1
+        with:
+          adapter: gradle
+          gradle-snapshot: true
+```
+
+This applies `-SNAPSHOT` suffix to **all** module versions, generating versions like: `1.2.3-SNAPSHOT`, `2.1.0-SNAPSHOT`
+
 ## Action Inputs
 
 | Input | Description | Default |
@@ -118,6 +144,7 @@ This generates versions like: `1.2.3-alpha.20251008.1530+abc1234` where:
 | `bump-unchanged` | Bump modules with no changes in prerelease mode | `false` |
 | `add-build-metadata` | Add build metadata with short SHA to all versions | `false` |
 | `timestamp-versions` | Use timestamp-based prerelease identifiers (e.g., alpha.20251008.1530) | `false` |
+| `gradle-snapshot` | Add -SNAPSHOT suffix to all Gradle versions (Gradle convention) | `false` |
 
 > 📖 **Detailed Pre-release Documentation**: See [PRERELEASE.md](PRERELEASE.md) for comprehensive examples and use cases.
 

@@ -44,6 +44,14 @@ When enabled, appends build metadata in the format `+<short-sha>` to all version
 
 When enabled with `prerelease-mode`, generates timestamp-based prerelease identifiers in the format `{prerelease-id}.YYYYMMDD.HHMM` (UTC time). This provides unique, time-ordered versions for every build.
 
+### `gradle-snapshot`
+- **Description**: Add -SNAPSHOT suffix to all Gradle versions
+- **Required**: false
+- **Default**: `'false'`
+- **Example**: `'true'`
+
+When enabled for Gradle projects, appends `-SNAPSHOT` suffix to **all** module versions, following Gradle convention. This is different from prerelease mode - it applies to every module regardless of changes.
+
 ## Usage Examples
 
 ### Basic Pre-release Mode
@@ -205,6 +213,17 @@ with:
   bump-unchanged: 'true'
 ```
 **Result**: `1.2.4-alpha.0+a7b8c9d`
+
+### 7. Gradle SNAPSHOT Versions
+Apply Gradle's conventional `-SNAPSHOT` suffix to all modules:
+```yaml
+uses: your-org/verse@v1
+with:
+  gradle-snapshot: 'true'
+```
+**Result**: All modules get `-SNAPSHOT` suffix: `1.2.3-SNAPSHOT`, `2.1.0-SNAPSHOT`
+
+**Note**: This applies to ALL modules in the project, not just changed ones.
 
 ## Notes
 

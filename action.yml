@@ -47,7 +47,11 @@ inputs:
     required: false
     default: 'false'
   timestamp-versions:
-    description: 'Use timestamp-based prerelease identifiers (e.g. alpha.20251008.1530)'
+    description: 'Use timestamp-based prerelease identifiers (requires prerelease-mode)'
+    required: false
+    default: 'false'
+  gradle-snapshot:
+    description: 'Add -SNAPSHOT suffix to all Gradle versions (Gradle convention)'
     required: false
     default: 'false'
 outputs:

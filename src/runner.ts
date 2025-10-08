@@ -41,6 +41,7 @@ export interface RunnerOptions {
   bumpUnchanged: boolean;
   addBuildMetadata: boolean;
   timestampVersions: boolean;
+  gradleSnapshot: boolean;
 }
 
 export interface RunnerResult {
@@ -275,13 +276,44 @@ export class MonorepoVersionRunner {
     for (const change of allChanges) {
       const finalVersionString = (change as any).finalVersionString;
       if (finalVersionString) {
+        // Apply Gradle snapshot suffix if enabled
+        const versionToWrite = this.options.gradleSnapshot && this.options.adapter === 'gradle' 
+          ? this.applyGradleSnapshot(finalVersionString) 
+          : finalVersionString;
         // Use string version for build metadata
-        this.versionManager.updateVersionString(change.module.id, finalVersionString);
-        core.info(`  Staged ${change.module.id} to ${finalVersionString}`);
+        this.versionManager.updateVersionString(change.module.id, versionToWrite);
+        core.info(`  Staged ${change.module.id} to ${versionToWrite}`);
       } else {
-        // Use SemVer version for normal cases
-        this.versionManager.updateVersion(change.module.id, change.toVersion);
-        core.info(`  Staged ${change.module.id} to ${formatSemVer(change.toVersion)}`);
+        // Apply Gradle snapshot suffix if enabled
+        const versionToWrite = this.options.gradleSnapshot && this.options.adapter === 'gradle' 
+          ? this.applyGradleSnapshot(formatSemVer(change.toVersion)) 
+          : formatSemVer(change.toVersion);
+        // Use string version for Gradle snapshots, SemVer for normal cases
+        if (this.options.gradleSnapshot && this.options.adapter === 'gradle') {
+          this.versionManager.updateVersionString(change.module.id, versionToWrite);
+        } else {
+          this.versionManager.updateVersion(change.module.id, change.toVersion);
+        }
+        core.info(`  Staged ${change.module.id} to ${versionToWrite}`);
+      }
+    }
+
+    // Handle Gradle snapshot for unchanged modules
+    if (this.options.gradleSnapshot && this.options.adapter === 'gradle') {
+      const changedModuleIds = new Set(allChanges.map(change => change.module.id));
+      for (const [moduleId, moduleInfo] of this.hierarchyManager.getModules()) {
+        if (!changedModuleIds.has(moduleId)) {
+          // Module hasn't changed, but we need to add -SNAPSHOT suffix
+          const currentVersion = moduleInfo.version;
+          const versionString = formatSemVer(currentVersion);
+          const snapshotVersion = this.applyGradleSnapshot(versionString);
+          
+          // Only update if the version doesn't already have -SNAPSHOT
+          if (snapshotVersion !== versionString) {
+            this.versionManager.updateVersionString(moduleId, snapshotVersion);
+            core.info(`  Staged ${moduleId} to ${snapshotVersion} (Gradle snapshot)`);
+          }
+        }
       }
     }
 
@@ -336,5 +368,18 @@ export class MonorepoVersionRunner {
       createdTags,
       changelogPaths,
     };
+  }
+
+  /**
+   * Apply Gradle -SNAPSHOT suffix to a version string.
+   * This follows Gradle convention where -SNAPSHOT is appended to all versions.
+   */
+  private applyGradleSnapshot(version: string): string {
+    // Don't add -SNAPSHOT if it's already there
+    if (version.endsWith('-SNAPSHOT')) {
+      return version;
+    }
+    
+    return `${version}-SNAPSHOT`;
   }
 }
