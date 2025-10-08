@@ -11,7 +11,7 @@ export interface GitOptions {
 /**
  * Get commits since the last tag for a specific module
  */
-export declare function getCommitsSinceLastTag(modulePath: string, options?: GitOptions): Promise<CommitInfo[]>;
+export declare function getCommitsSinceLastTag(modulePath: string, moduleName: string, moduleType: 'root' | 'module', options?: GitOptions): Promise<CommitInfo[]>;
 /**
  * Get commits in a specific range, optionally filtered by path
  */
@@ -19,7 +19,7 @@ export declare function getCommitsInRange(range: string, pathFilter?: string, op
 /**
  * Get the last tag for a specific module
  */
-export declare function getLastTagForModule(modulePath: string, options?: GitOptions): Promise<string | null>;
+export declare function getLastTagForModule(moduleName: string, moduleType: 'root' | 'module', options?: GitOptions): Promise<string | null>;
 /**
  * Get all tags in the repository
  */

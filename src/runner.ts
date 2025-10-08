@@ -104,7 +104,12 @@ export class MonorepoVersionRunner {
     const moduleCommits = new Map<string, CommitInfo[]>();
     
     for (const [projectId, projectInfo] of this.hierarchyManager.getModules()) {
-      const commits = await getCommitsSinceLastTag(projectInfo.path, { cwd: this.options.repoRoot });
+      const commits = await getCommitsSinceLastTag(
+        projectInfo.path, 
+        projectInfo.name,
+        projectInfo.type,
+        { cwd: this.options.repoRoot }
+      );
       moduleCommits.set(projectId, commits);
     }
 

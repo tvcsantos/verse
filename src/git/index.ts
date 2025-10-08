@@ -19,13 +19,15 @@ export interface GitOptions {
  */
 export async function getCommitsSinceLastTag(
   modulePath: string,
+  moduleName: string,
+  moduleType: 'root' | 'module',
   options: GitOptions = {}
 ): Promise<CommitInfo[]> {
   const cwd = options.cwd || process.cwd();
   
   try {
     // Find the last tag for this module
-    const lastTag = await getLastTagForModule(modulePath, { cwd });
+    const lastTag = await getLastTagForModule(moduleName, moduleType, { cwd });
     
     // Get commits since that tag
     const range = lastTag ? `${lastTag}..HEAD` : '';
@@ -122,17 +124,18 @@ function parseGitLog(output: string): CommitInfo[] {
  * Get the last tag for a specific module
  */
 export async function getLastTagForModule(
-  modulePath: string,
+  moduleName: string,
+  moduleType: 'root' | 'module',
   options: GitOptions = {}
 ): Promise<string | null> {
   const cwd = options.cwd || process.cwd();
   
   try {
     // Try to find module-specific tags first (e.g., module@1.0.0)
-    const moduleTagPattern = getModuleTagPattern(modulePath);
+    const moduleTagPattern = getModuleTagPattern(moduleName);
     
     // Only search for module-specific tags if it's not root
-    if (moduleTagPattern !== 'root@*') {
+    if (moduleType !== 'root') {
       const { stdout } = await getExecOutput('git', ['tag', '-l', moduleTagPattern, '--sort=-version:refname'], {
         cwd,
         //silent: true
@@ -227,13 +230,7 @@ export async function pushTags(options: GitOptions = {}): Promise<void> {
 /**
  * Get module name from path for tag naming
  */
-function getModuleTagPattern(modulePath: string): string {
-  // Handle root module case
-  if (modulePath === '.' || modulePath === '' || modulePath === '/') {
-    return 'root@*';
-  }
-  
-  const moduleName = modulePath.split('/').pop() || 'root';
+function getModuleTagPattern(moduleName: string): string {
   return `${moduleName}@*`;
 }
 
