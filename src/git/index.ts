@@ -49,7 +49,19 @@ export async function getCommitsInRange(
   core.info(`cwd: ${cwd}, range: ${range}, pathFilter: ${pathFilter}`);
   
   try {
-    const { stdout } = await getExecOutput('git', ['log', '--format=%H%n%s%n%b%n---COMMIT-END---', range, ...(pathFilter ? ['--', pathFilter] : [])], {
+    const args = ['log', '--format=%H%n%s%n%b%n---COMMIT-END---'];
+    
+    // Only add range if it's not empty
+    if (range.trim()) {
+      args.push(range);
+    }
+    
+    // Add path filter if provided and not root
+    if (pathFilter && pathFilter !== '.') {
+      args.push('--', pathFilter);
+    }
+    
+    const { stdout } = await getExecOutput('git', args, {
       cwd,
       //silent: true
     });
@@ -119,22 +131,30 @@ export async function getLastTagForModule(
     // Try to find module-specific tags first (e.g., module@1.0.0)
     const moduleTagPattern = getModuleTagPattern(modulePath);
     
-    const { stdout } = await getExecOutput('git', ['tag', '-l', moduleTagPattern, '--sort=-version:refname'], {
-      cwd,
-      //silent: true
-    });
-    
-    if (stdout.trim()) {
-      return stdout.trim().split('\n')[0];
+    // Only search for module-specific tags if it's not root
+    if (moduleTagPattern !== 'root@*') {
+      const { stdout } = await getExecOutput('git', ['tag', '-l', moduleTagPattern, '--sort=-version:refname'], {
+        cwd,
+        //silent: true
+      });
+      
+      if (stdout.trim()) {
+        return stdout.trim().split('\n')[0];
+      }
     }
     
     // Fallback to general tags
-    const { stdout: fallbackOutput } = await getExecOutput('git', ['describe', '--tags', '--abbrev=0', 'HEAD'], {
-      cwd,
-      //silent: true
-    });
-    
-    return fallbackOutput.trim();
+    try {
+      const { stdout: fallbackOutput } = await getExecOutput('git', ['describe', '--tags', '--abbrev=0', 'HEAD'], {
+        cwd,
+        //silent: true
+      });
+      
+      return fallbackOutput.trim();
+    } catch {
+      // If no tags at all, return null
+      return null;
+    }
   } catch (error) {
     return null;
   }
@@ -208,6 +228,11 @@ export async function pushTags(options: GitOptions = {}): Promise<void> {
  * Get module name from path for tag naming
  */
 function getModuleTagPattern(modulePath: string): string {
+  // Handle root module case
+  if (modulePath === '.' || modulePath === '' || modulePath === '/') {
+    return 'root@*';
+  }
+  
   const moduleName = modulePath.split('/').pop() || 'root';
   return `${moduleName}@*`;
 }
