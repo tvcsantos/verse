@@ -157,3 +157,24 @@ export function addBuildMetadataAsString(version: SemVer, buildMetadata: string)
   const prereleaseString = version.prerelease.length > 0 ? `-${version.prerelease.join('.')}` : '';
   return `${versionBase}${prereleaseString}+${buildMetadata}`;
 }
+
+/**
+ * Generate a timestamp-based prerelease identifier
+ * Format: {baseId}.{YYYYMMDD}.{HHMM}
+ */
+export function generateTimestampPrereleaseId(baseId: string, timestamp?: Date): string {
+  const date = timestamp || new Date();
+  
+  // Format: YYYYMMDD (using UTC to ensure consistency across timezones)
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const dateString = `${year}${month}${day}`;
+  
+  // Format: HHMM (using UTC to ensure consistency across timezones)
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const timeString = `${hours}${minutes}`;
+  
+  return `${baseId}.${dateString}.${timeString}`;
+}

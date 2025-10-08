@@ -45,4 +45,9 @@ export declare function addBuildMetadata(version: SemVer, buildMetadata: string)
  * Add build metadata to a version and return as string (since semver lib doesn't preserve build metadata in SemVer objects)
  */
 export declare function addBuildMetadataAsString(version: SemVer, buildMetadata: string): string;
+/**
+ * Generate a timestamp-based prerelease identifier
+ * Format: {baseId}.{YYYYMMDD}.{HHMM}
+ */
+export declare function generateTimestampPrereleaseId(baseId: string, timestamp?: Date): string;
 //# sourceMappingURL=index.d.ts.map

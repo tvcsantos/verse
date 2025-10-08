@@ -20,7 +20,7 @@ import {
 import { 
   calculateCascadeEffects
 } from './graph/index.js';
-import { bumpSemVer, bumpToPrerelease, formatSemVer, addBuildMetadataAsString } from './semver/index.js';
+import { bumpSemVer, bumpToPrerelease, formatSemVer, addBuildMetadataAsString, generateTimestampPrereleaseId } from './semver/index.js';
 import { 
   generateChangelogsForModules,
   generateRootChangelog
@@ -40,6 +40,7 @@ export interface RunnerOptions {
   prereleaseId: string;
   bumpUnchanged: boolean;
   addBuildMetadata: boolean;
+  timestampVersions: boolean;
 }
 
 export interface RunnerResult {
@@ -125,6 +126,13 @@ export class MonorepoVersionRunner {
       core.info(`📋 Build metadata will include short SHA: ${shortSha}`);
     }
 
+    // Generate timestamp-based prerelease ID if timestamp versions are enabled
+    let effectivePrereleaseId = this.options.prereleaseId;
+    if (this.options.timestampVersions && this.options.prereleaseMode) {
+      effectivePrereleaseId = generateTimestampPrereleaseId(this.options.prereleaseId);
+      core.info(`🕐 Generated timestamp prerelease ID: ${effectivePrereleaseId}`);
+    }
+
     // Calculate version bumps for each module
     core.info('🔢 Calculating version bumps...');
     const moduleChanges: ModuleChange[] = [];
@@ -166,7 +174,7 @@ export class MonorepoVersionRunner {
         } else {
           // Normal version bump
           if (this.options.prereleaseMode) {
-            newVersion = bumpToPrerelease(currentVersion, actualBumpType, this.options.prereleaseId);
+            newVersion = bumpToPrerelease(currentVersion, actualBumpType, effectivePrereleaseId);
           } else {
             newVersion = bumpSemVer(currentVersion, actualBumpType);
           }
@@ -207,7 +215,7 @@ export class MonorepoVersionRunner {
         
         let newVersion;
         if (this.options.prereleaseMode) {
-          newVersion = bumpToPrerelease(change.fromVersion, change.bumpType, this.options.prereleaseId);
+          newVersion = bumpToPrerelease(change.fromVersion, change.bumpType, effectivePrereleaseId);
         } else {
           newVersion = bumpSemVer(change.fromVersion, change.bumpType);
         }

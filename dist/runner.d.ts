@@ -12,6 +12,7 @@ export interface RunnerOptions {
     prereleaseId: string;
     bumpUnchanged: boolean;
     addBuildMetadata: boolean;
+    timestampVersions: boolean;
 }
 export interface RunnerResult {
     bumped: boolean;

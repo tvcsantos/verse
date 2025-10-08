@@ -35,15 +35,19 @@ inputs:
     required: false
     default: 'false'
   prerelease-id:
-    description: 'Pre-release identifier (e.g., alpha, beta, SNAPSHOT)'
+    description: 'Pre-release identifier (e.g., alpha, beta, rc)'
     required: false
-    default: 'SNAPSHOT'
+    default: 'alpha'
   bump-unchanged:
     description: 'In prerelease mode, bump modules even when no changes are detected'
     required: false
     default: 'false'
   add-build-metadata:
     description: 'Add build metadata with short SHA to all versions'
+    required: false
+    default: 'false'
+  timestamp-versions:
+    description: 'Use timestamp-based prerelease identifiers (e.g. alpha.20251008.1530)'
     required: false
     default: 'false'
 outputs:

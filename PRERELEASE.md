@@ -1,6 +1,6 @@
-# Pre-release and Snapshot Version Support
+# Pre-release Version Support
 
-This action now supports generating pre-release/snapshot versions instead of final release versions. This is particularly useful for CI/CD pipelines that need to create development or testing versions.
+This action now supports generating pre-release versions instead of final release versions. This is particularly useful for CI/CD pipelines that need to create development or testing versions.
 
 ## New Input Parameters
 
@@ -13,9 +13,9 @@ This action now supports generating pre-release/snapshot versions instead of fin
 When enabled, all version bumps will generate pre-release versions using the specified identifier.
 
 ### `prerelease-id`
-- **Description**: Pre-release identifier (e.g., alpha, beta, SNAPSHOT)
+- **Description**: Pre-release identifier (e.g., alpha, beta, rc)
 - **Required**: false
-- **Default**: `'SNAPSHOT'`
+- **Default**: `'alpha'`
 - **Example**: `'alpha'`, `'beta'`, `'rc'`, `'dev'`
 
 This identifier will be appended to versions in pre-release mode.
@@ -36,6 +36,14 @@ When enabled in pre-release mode, modules will be bumped to pre-release versions
 
 When enabled, appends build metadata in the format `+<short-sha>` to all version numbers. This forces all modules to be updated even if no code changes are detected.
 
+### `timestamp-versions`
+- **Description**: Use timestamp-based prerelease identifiers
+- **Required**: false
+- **Default**: `'false'`
+- **Example**: `'true'`
+
+When enabled with `prerelease-mode`, generates timestamp-based prerelease identifiers in the format `{prerelease-id}.YYYYMMDD.HHMM` (UTC time). This provides unique, time-ordered versions for every build.
+
 ## Usage Examples
 
 ### Basic Pre-release Mode
@@ -43,10 +51,10 @@ When enabled, appends build metadata in the format `+<short-sha>` to all version
 - uses: your-org/verse@v1
   with:
     prerelease-mode: 'true'
-    prerelease-id: 'SNAPSHOT'
+    prerelease-id: 'alpha'
 ```
 
-**Result**: `1.2.3` → `1.2.4-SNAPSHOT.0` (for patch changes)
+**Result**: `1.2.3` → `1.2.4-alpha.0` (for patch changes)
 
 ### Development Builds with Unchanged Modules
 ```yaml
@@ -78,6 +86,31 @@ When enabled, appends build metadata in the format `+<short-sha>` to all version
 
 **Result**: `1.2.3` → `1.3.0-alpha.0` (for minor changes)
 
+### Timestamp-based Versions
+```yaml
+- uses: your-org/verse@v1
+  with:
+    prerelease-mode: 'true'
+    prerelease-id: 'alpha'
+    timestamp-versions: 'true'
+    bump-unchanged: 'true'
+```
+
+**Result**: `1.2.3` → `1.3.0-alpha.20251008.1530` (timestamp format: YYYYMMDD.HHMM)
+
+### Complete CI/CD Pipeline Example
+```yaml
+- uses: your-org/verse@v1
+  with:
+    prerelease-mode: 'true'
+    prerelease-id: 'ci'
+    timestamp-versions: 'true'
+    bump-unchanged: 'true'
+    add-build-metadata: 'true'
+```
+
+**Result**: `1.2.3` → `1.3.0-ci.20251008.1530+a7b8c9d` (timestamp + build metadata)
+
 ## Version Bump Behavior
 
 ### Regular Mode (prerelease-mode: false)
@@ -87,30 +120,38 @@ When enabled, appends build metadata in the format `+<short-sha>` to all version
 - `1.2.3` + no changes → no version bump
 
 ### Pre-release Mode (prerelease-mode: true)
-- `1.2.3` + patch changes → `1.2.4-SNAPSHOT.0`
-- `1.2.3` + minor changes → `1.3.0-SNAPSHOT.0`
-- `1.2.3` + major changes → `2.0.0-SNAPSHOT.0`
+- `1.2.3` + patch changes → `1.2.4-alpha.0`
+- `1.2.3` + minor changes → `1.3.0-alpha.0`
+- `1.2.3` + major changes → `2.0.0-alpha.0`
 - `1.2.3` + no changes → no version bump (unless `bump-unchanged: true`)
 
 ### Pre-release Mode with Bump Unchanged
-- `1.2.3` + no changes → `1.2.4-SNAPSHOT.0` (increments patch)
-- `1.2.3-SNAPSHOT.0` + no changes → `1.2.3-SNAPSHOT.1` (increments pre-release number)
+- `1.2.3` + no changes → `1.2.4-alpha.0` (increments patch)
+- `1.2.3-alpha.0` + no changes → `1.2.3-alpha.1` (increments pre-release number)
 
 ### Build Metadata Mode
 - `1.2.3` + no changes → `1.2.3+a7b8c9d` (adds short SHA)
-- `1.2.3-SNAPSHOT.0` + no changes → `1.2.3-SNAPSHOT.0+a7b8c9d` (adds short SHA to pre-release)
+
+### Timestamp-based Pre-release Mode
+- `1.2.3` + patch changes → `1.2.4-alpha.20251008.1530`
+- `1.2.3` + minor changes → `1.3.0-alpha.20251008.1530`
+- `1.2.3` + major changes → `2.0.0-alpha.20251008.1530`
+- `1.2.3` + no changes → `1.2.4-alpha.20251008.1530` (when `bump-unchanged: true`)
+
+The timestamp format `YYYYMMDD.HHMM` uses UTC time to ensure consistency across different timezones and provides natural ordering by creation time.
+- `1.2.3-alpha.0` + no changes → `1.2.3-alpha.0+a7b8c9d` (adds short SHA to pre-release)
 - Works with any version type and forces all modules to update
 
 ## Use Cases
 
 ### 1. CI/CD Development Builds
-Create snapshot versions for every commit to development branches:
+Create pre-release versions for every commit to development branches:
 ```yaml
 if: github.ref == 'refs/heads/develop'
 uses: your-org/verse@v1
 with:
   prerelease-mode: 'true'
-  prerelease-id: 'SNAPSHOT'
+  prerelease-id: 'alpha'
   bump-unchanged: 'true'
 ```
 
@@ -134,14 +175,14 @@ with:
   prerelease-id: 'rc'
 ```
 
-### 4. Maven SNAPSHOT Versions
-Perfect for Java projects that use Maven SNAPSHOT conventions:
+### 4. Development Builds
+Perfect for continuous integration and development builds:
 ```yaml
 uses: your-org/verse@v1
 with:
   adapter: 'gradle'
   prerelease-mode: 'true'
-  prerelease-id: 'SNAPSHOT'
+  prerelease-id: 'dev'
   bump-unchanged: 'true'
 ```
 
@@ -159,11 +200,11 @@ Get the best of both worlds:
 uses: your-org/verse@v1
 with:
   prerelease-mode: 'true'
-  prerelease-id: 'SNAPSHOT'
+  prerelease-id: 'alpha'
   add-build-metadata: 'true'
   bump-unchanged: 'true'
 ```
-**Result**: `1.2.4-SNAPSHOT.0+a7b8c9d`
+**Result**: `1.2.4-alpha.0+a7b8c9d`
 
 ## Notes
 

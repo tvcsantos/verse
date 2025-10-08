@@ -11,7 +11,7 @@ This TypeScript GitHub Action manages semantic versions for projects in a monore
 ✅ **Extensible Architecture** - Easy to add adapters for other ecosystems  
 ✅ **Changelog Generation** - Automatic per-module changelog generation  
 ✅ **GitHub Integration** - Creates tags and releases automatically  
-✅ **Pre-release Support** - Generate SNAPSHOT, alpha, beta, or custom pre-release versions
+✅ **Pre-release Support** - Generate alpha, beta, rc, or custom pre-release versions
 
 ## Usage
 
@@ -43,9 +43,9 @@ jobs:
           echo "Changed: ${{ steps.versioner.outputs['changed-modules'] }}"
 ```
 
-### Pre-release/Snapshot Versions
+### Pre-release Versions
 
-For development builds or SNAPSHOT versions:
+For development builds or pre-release versions:
 
 ```yaml
 name: Development Build
@@ -54,20 +54,53 @@ on:
     branches: [ "develop" ]
 
 jobs:
-  snapshot-version:
+  prerelease-version:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Create SNAPSHOT versions
+      - name: Create pre-release versions
         uses: your-org/monorepo-versioner@v1
         with:
           adapter: gradle
           prerelease-mode: true
-          prerelease-id: SNAPSHOT
+          prerelease-id: alpha
           bump-unchanged: true
 ```
+
+### Timestamp-based Versions
+
+For time-based unique versions (useful for CI/CD pipelines):
+
+```yaml
+name: CI Build
+on:
+  pull_request:
+  push:
+    branches: [ "feature/*", "develop" ]
+
+jobs:
+  ci-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create timestamp versions
+        uses: your-org/monorepo-versioner@v1
+        with:
+          adapter: gradle
+          prerelease-mode: true
+          prerelease-id: alpha
+          timestamp-versions: true
+          bump-unchanged: true
+          add-build-metadata: true
+```
+
+This generates versions like: `1.2.3-alpha.20251008.1530+abc1234` where:
+- `alpha.20251008.1530` is the timestamp-based prerelease identifier (YYYYMMDD.HHMM format)
+- `abc1234` is the short SHA build metadata
 
 ## Action Inputs
 
@@ -81,9 +114,10 @@ jobs:
 | `create-releases` | Create GitHub Releases | `false` |
 | `push-tags` | Push tags to remote | `true` |
 | `prerelease-mode` | Generate pre-release versions | `false` |
-| `prerelease-id` | Pre-release identifier | `SNAPSHOT` |
+| `prerelease-id` | Pre-release identifier | `alpha` |
 | `bump-unchanged` | Bump modules with no changes in prerelease mode | `false` |
 | `add-build-metadata` | Add build metadata with short SHA to all versions | `false` |
+| `timestamp-versions` | Use timestamp-based prerelease identifiers (e.g., alpha.20251008.1530) | `false` |
 
 > 📖 **Detailed Pre-release Documentation**: See [PRERELEASE.md](PRERELEASE.md) for comprehensive examples and use cases.
 
