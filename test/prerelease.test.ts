@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { bumpToPrerelease, parseSemVer, addBuildMetadataAsString, generateTimestampPrereleaseId } from '../src/semver/index.js';
+import { bumpToPrerelease, parseSemVer, addBuildMetadata, generateTimestampPrereleaseId } from '../src/semver/index.js';
 import { BumpType } from '../src/adapters/core.js';
 
 describe('Pre-release Version Management', () => {
@@ -76,34 +76,34 @@ describe('Pre-release Version Management', () => {
 });
 
 describe('Build Metadata Support', () => {
-  describe('addBuildMetadataAsString', () => {
+  describe('addBuildMetadata with string output', () => {
     it('should add build metadata to regular version', () => {
       const version = parseSemVer('1.2.3');
-      const result = addBuildMetadataAsString(version, 'abc123');
+      const result = addBuildMetadata(version, 'abc123').raw;
       expect(result).toBe('1.2.3+abc123');
     });
 
     it('should add build metadata to prerelease version', () => {
       const version = parseSemVer('1.2.3-alpha.0');
-      const result = addBuildMetadataAsString(version, 'def456');
+      const result = addBuildMetadata(version, 'def456').raw;
       expect(result).toBe('1.2.3-alpha.0+def456');
     });
 
     it('should handle short SHA format', () => {
       const version = parseSemVer('2.1.0');
-      const result = addBuildMetadataAsString(version, '7a8b9c2');
+      const result = addBuildMetadata(version, '7a8b9c2').raw;
       expect(result).toBe('2.1.0+7a8b9c2');
     });
 
     it('should work with alpha prerelease', () => {
       const version = parseSemVer('3.0.0-alpha.1');
-      const result = addBuildMetadataAsString(version, 'build123');
+      const result = addBuildMetadata(version, 'build123').raw;
       expect(result).toBe('3.0.0-alpha.1+build123');
     });
 
     it('should handle zero version', () => {
       const version = parseSemVer('0.0.0');
-      const result = addBuildMetadataAsString(version, 'init');
+      const result = addBuildMetadata(version, 'init').raw;
       expect(result).toBe('0.0.0+init');
     });
   });

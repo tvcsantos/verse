@@ -24,7 +24,8 @@ import {
 import { 
   calculateCascadeEffects
 } from './graph/index.js';
-import { bumpSemVer, bumpToPrerelease, formatSemVer, addBuildMetadataAsString, generateTimestampPrereleaseId } from './semver/index.js';
+import { bumpSemVer, bumpToPrerelease, formatSemVer, addBuildMetadata, generateTimestampPrereleaseId } from './semver/index.js';
+import { SemVer } from 'semver';
 import { 
   generateChangelogsForModules,
   generateRootChangelog
@@ -170,13 +171,13 @@ export class MonorepoVersionRunner {
       }
       
       if (shouldBump) {
-        let newVersion;
-        let newVersionString;
+        let newVersion: SemVer;
         
         if (actualBumpType === 'none' && reason === 'build-metadata') {
           // Only add build metadata to existing version without bumping
-          newVersion = currentVersion;
-          newVersionString = addBuildMetadataAsString(currentVersion, shortSha!);
+          newVersion = this.options.addBuildMetadata && shortSha 
+            ? addBuildMetadata(currentVersion, shortSha)
+            : currentVersion;
         } else {
           // Normal version bump
           if (this.options.prereleaseMode) {
@@ -187,9 +188,7 @@ export class MonorepoVersionRunner {
           
           // Add build metadata if enabled
           if (this.options.addBuildMetadata && shortSha) {
-            newVersionString = addBuildMetadataAsString(newVersion, shortSha);
-          } else {
-            newVersionString = formatSemVer(newVersion);
+            newVersion = addBuildMetadata(newVersion, shortSha);
           }
         }
         
@@ -201,8 +200,8 @@ export class MonorepoVersionRunner {
           reason: reason,
         });
         
-        // Store the final version string with build metadata for later use
-        (moduleChanges[moduleChanges.length - 1] as any).finalVersionString = newVersionString;
+        // Store the final version string (using formatSemVer which preserves build metadata via .raw)
+        (moduleChanges[moduleChanges.length - 1] as any).finalVersionString = formatSemVer(newVersion);
       }
     }
 
@@ -230,9 +229,11 @@ export class MonorepoVersionRunner {
         
         // Add build metadata to cascade changes if enabled
         if (this.options.addBuildMetadata && shortSha) {
-          const finalVersionString = addBuildMetadataAsString(newVersion, shortSha);
-          (change as any).finalVersionString = finalVersionString;
+          change.toVersion = addBuildMetadata(newVersion, shortSha);
         }
+        
+        // Store final version string (formatSemVer preserves build metadata via .raw)
+        (change as any).finalVersionString = formatSemVer(change.toVersion);
       }
     }
 

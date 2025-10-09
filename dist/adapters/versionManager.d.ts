@@ -8,17 +8,17 @@ import { VersionUpdateStrategy } from './core.js';
 export declare class VersionManager {
     private readonly hierarchyManager;
     private readonly strategy;
-    private readonly pendingVersionUpdates;
-    private readonly pendingVersionStringUpdates;
+    private readonly pendingUpdates;
     constructor(hierarchyManager: HierarchyModuleManager, strategy: VersionUpdateStrategy);
     /**
      * Stage a version update for a module in memory.
      * The update will be persisted when commit() is called.
      */
-    updateVersion(moduleId: string, newVersion: SemVer): void;
+    updateVersion(moduleId: string, newVersion: SemVer | string): void;
     /**
      * Stage a version update using a version string (for build metadata support).
      * The update will be persisted when commit() is called.
+     * @deprecated Use updateVersion() instead, which now accepts both SemVer and string
      */
     updateVersionString(moduleId: string, versionString: string): void;
     /**
@@ -31,7 +31,7 @@ export declare class VersionManager {
      * Get all pending version updates that haven't been committed yet.
      * Useful for debugging or validation purposes.
      */
-    getPendingUpdates(): Map<string, SemVer>;
+    getPendingUpdates(): Map<string, string>;
     /**
      * Check if there are any pending updates that need to be committed.
      */

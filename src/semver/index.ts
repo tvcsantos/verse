@@ -17,6 +17,7 @@ export function parseSemVer(versionString: string): SemVer {
 
 /**
  * Convert a SemVer object to a string
+ * Uses the raw property to preserve build metadata
  */
 export function formatSemVer(version: SemVer): string {
   return version.raw;
@@ -139,24 +140,17 @@ export function bumpToPrerelease(version: SemVer, bumpType: BumpType, prerelease
 
 /**
  * Add build metadata to a version
+ * Leverages SemVer's native build metadata support
  */
 export function addBuildMetadata(version: SemVer, buildMetadata: string): SemVer {
-  // Create new version string with build metadata
-  const versionBase = `${version.major}.${version.minor}.${version.patch}`;
-  const prereleaseString = version.prerelease.length > 0 ? `-${version.prerelease.join('.')}` : '';
-  const newVersionString = `${versionBase}${prereleaseString}+${buildMetadata}`;
+  // Use the existing version string and append build metadata
+  const baseVersionString = version.format(); // Gets version without build metadata
+  const newVersionString = `${baseVersionString}+${buildMetadata}`;
   
   return parseSemVer(newVersionString);
 }
 
-/**
- * Add build metadata to a version and return as string (since semver lib doesn't preserve build metadata in SemVer objects)
- */
-export function addBuildMetadataAsString(version: SemVer, buildMetadata: string): string {
-  const versionBase = `${version.major}.${version.minor}.${version.patch}`;
-  const prereleaseString = version.prerelease.length > 0 ? `-${version.prerelease.join('.')}` : '';
-  return `${versionBase}${prereleaseString}+${buildMetadata}`;
-}
+
 
 /**
  * Generate a timestamp-based prerelease identifier

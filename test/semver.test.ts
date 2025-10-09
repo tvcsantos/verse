@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSemVer, formatSemVer, bumpSemVer, compareSemVer, maxBumpType } from '../src/semver/index.js';
+import { parseSemVer, formatSemVer, bumpSemVer, compareSemVer, maxBumpType, addBuildMetadata } from '../src/semver/index.js';
 
 describe('SemVer Utilities', () => {
   describe('parseSemVer', () => {
@@ -107,6 +107,55 @@ describe('SemVer Utilities', () => {
       expect(maxBumpType(['patch', 'major', 'minor'])).toBe('major');
       expect(maxBumpType(['none', 'patch'])).toBe('patch');
       expect(maxBumpType(['none'])).toBe('none');
+    });
+  });
+
+  describe('addBuildMetadata', () => {
+    it('should add build metadata to regular version', () => {
+      const version = parseSemVer('1.2.3');
+      const result = addBuildMetadata(version, 'abc123');
+      
+      expect(result.major).toBe(1);
+      expect(result.minor).toBe(2);
+      expect(result.patch).toBe(3);
+      expect(result.build).toEqual(['abc123']);
+      expect(result.raw).toBe('1.2.3+abc123');
+    });
+
+    it('should add build metadata to prerelease version', () => {
+      const version = parseSemVer('2.1.0-alpha.1');
+      const result = addBuildMetadata(version, 'def456');
+      
+      expect(result.major).toBe(2);
+      expect(result.minor).toBe(1);
+      expect(result.patch).toBe(0);
+      expect(result.prerelease).toEqual(['alpha', 1]);
+      expect(result.build).toEqual(['def456']);
+      expect(result.raw).toBe('2.1.0-alpha.1+def456');
+    });
+
+    it('should handle complex build metadata', () => {
+      const version = parseSemVer('1.0.0');
+      const result = addBuildMetadata(version, 'build.1.sha.abc123');
+      
+      expect(result.build).toEqual(['build', '1', 'sha', 'abc123']);
+      expect(result.raw).toBe('1.0.0+build.1.sha.abc123');
+    });
+  });
+
+  describe('addBuildMetadata string output', () => {
+    it('should return version string with build metadata via .raw', () => {
+      const version = parseSemVer('1.2.3');
+      const result = addBuildMetadata(version, 'abc123').raw;
+      
+      expect(result).toBe('1.2.3+abc123');
+    });
+
+    it('should handle prerelease versions via .raw', () => {
+      const version = parseSemVer('2.1.0-beta.2');
+      const result = addBuildMetadata(version, 'build456').raw;
+      
+      expect(result).toBe('2.1.0-beta.2+build456');
     });
   });
 });

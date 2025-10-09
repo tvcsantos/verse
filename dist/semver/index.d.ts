@@ -6,6 +6,7 @@ import { BumpType } from '../adapters/core.js';
 export declare function parseSemVer(versionString: string): SemVer;
 /**
  * Convert a SemVer object to a string
+ * Uses the raw property to preserve build metadata
  */
 export declare function formatSemVer(version: SemVer): string;
 /**
@@ -39,12 +40,9 @@ export declare function createInitialVersion(): SemVer;
 export declare function bumpToPrerelease(version: SemVer, bumpType: BumpType, prereleaseId: string): SemVer;
 /**
  * Add build metadata to a version
+ * Leverages SemVer's native build metadata support
  */
 export declare function addBuildMetadata(version: SemVer, buildMetadata: string): SemVer;
-/**
- * Add build metadata to a version and return as string (since semver lib doesn't preserve build metadata in SemVer objects)
- */
-export declare function addBuildMetadataAsString(version: SemVer, buildMetadata: string): string;
 /**
  * Generate a timestamp-based prerelease identifier
  * Format: {baseId}.{YYYYMMDD}.{HHMM}
