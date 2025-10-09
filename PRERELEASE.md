@@ -225,6 +225,93 @@ with:
 
 **Note**: This applies to ALL modules in the project, not just changed ones.
 
+## Git Operations in Pre-release Workflows
+
+### Controlling Git Operations
+
+The `push-changes` input parameter controls whether the action commits and pushes changes:
+
+```yaml
+# Enable git operations (default)
+uses: your-org/verse@v1
+with:
+  prerelease-mode: 'true'
+  push-changes: 'true'      # Commits and pushes version changes
+
+# Disable git operations  
+uses: your-org/verse@v1
+with:
+  prerelease-mode: 'true'
+  push-changes: 'false'     # No commits/pushes, just updates files
+```
+
+### Common Pre-release Git Workflows
+
+#### 1. Development Branch Auto-versioning
+Automatically commit pre-release versions on development branches:
+```yaml
+name: Dev Versioning
+on:
+  push:
+    branches: [develop]
+jobs:
+  version:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - name: Pre-release version
+        uses: your-org/verse@v1
+        with:
+          prerelease-mode: 'true'
+          prerelease-id: 'alpha'
+          timestamp-versions: 'true'
+          push-changes: 'true'        # Auto-commit changes
+```
+
+#### 2. Pull Request Validation (No Commits)
+Test versioning in PRs without making changes:
+```yaml
+name: PR Validation
+on: 
+  pull_request:
+jobs:
+  validate:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate versions
+        uses: your-org/verse@v1
+        with:
+          prerelease-mode: 'true'
+          dry-run: 'true'             # Don't make changes
+          push-changes: 'false'       # No git operations
+```
+
+#### 3. Manual Release Preparation
+Generate versions without auto-committing for review:
+```yaml
+name: Prepare Release
+on: 
+  workflow_dispatch:
+jobs:
+  prepare:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate release versions
+        uses: your-org/verse@v1
+        with:
+          prerelease-mode: 'true'
+          prerelease-id: 'rc'
+          push-changes: 'false'       # Manual commit control
+      - name: Create PR with changes
+        # Custom logic to create PR with generated changes
+```
+
 ## Notes
 
 - Pre-release versions follow semantic versioning standards
@@ -232,3 +319,4 @@ with:
 - Tags created will include the pre-release identifier
 - The feature works with all supported adapters (Gradle, Maven, etc.)
 - Pre-release versions are automatically sorted correctly by semantic versioning rules
+- Git operations respect the `push-changes` setting for flexible workflow integration

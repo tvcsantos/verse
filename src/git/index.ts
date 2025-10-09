@@ -309,3 +309,60 @@ export async function getCurrentCommitShortSha(options: GitOptions = {}): Promis
     throw new Error(`Failed to get current commit SHA: ${error}`);
   }
 }
+
+/**
+ * Add all changed files to git staging area
+ */
+export async function addChangedFiles(options: GitOptions = {}): Promise<void> {
+  const cwd = options.cwd || process.cwd();
+  
+  try {
+    await exec('git', ['add', '.'], { cwd });
+  } catch (error) {
+    throw new Error(`Failed to add changed files: ${error}`);
+  }
+}
+
+/**
+ * Commit changes with a message
+ */
+export async function commitChanges(message: string, options: GitOptions = {}): Promise<void> {
+  const cwd = options.cwd || process.cwd();
+  
+  try {
+    await exec('git', ['commit', '-m', message], { cwd });
+  } catch (error) {
+    throw new Error(`Failed to commit changes: ${error}`);
+  }
+}
+
+/**
+ * Push commits to remote
+ */
+export async function pushCommits(options: GitOptions = {}): Promise<void> {
+  const cwd = options.cwd || process.cwd();
+  
+  try {
+    await exec('git', ['push'], { cwd });
+  } catch (error) {
+    throw new Error(`Failed to push commits: ${error}`);
+  }
+}
+
+/**
+ * Check if there are changes to commit (staged or unstaged)
+ */
+export async function hasChangesToCommit(options: GitOptions = {}): Promise<boolean> {
+  const cwd = options.cwd || process.cwd();
+  
+  try {
+    const { stdout } = await getExecOutput('git', ['status', '--porcelain'], {
+      cwd,
+      silent: true
+    });
+    
+    return stdout.trim().length > 0;
+  } catch (error) {
+    throw new Error(`Failed to check git status: ${error}`);
+  }
+}

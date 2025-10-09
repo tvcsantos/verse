@@ -15,7 +15,11 @@ import {
   pushTags,
   getCurrentBranch,
   isWorkingDirectoryClean,
-  getCurrentCommitShortSha
+  getCurrentCommitShortSha,
+  addChangedFiles,
+  commitChanges,
+  pushCommits,
+  hasChangesToCommit
 } from './git/index.js';
 import { 
   calculateCascadeEffects
@@ -42,6 +46,7 @@ export interface RunnerOptions {
   addBuildMetadata: boolean;
   timestampVersions: boolean;
   gradleSnapshot: boolean;
+  pushChanges: boolean;
 }
 
 export interface RunnerResult {
@@ -340,9 +345,44 @@ export class MonorepoVersionRunner {
     const rootChangelogPath = await generateRootChangelog(allChanges, this.options.repoRoot);
     changelogPaths.push(rootChangelogPath);
 
+    // Commit and push changes (if enabled)
+    if (this.options.pushChanges) {
+      core.info('📦 Committing and pushing changes...');
+      try {
+        // Add all changed files to staging area
+        await addChangedFiles({ cwd: this.options.repoRoot });
+        
+        // Check if there are any changes to commit
+        const hasChanges = await hasChangesToCommit({ cwd: this.options.repoRoot });
+        
+        if (hasChanges) {
+          // Create commit message
+          const moduleNames = allChanges.map(change => change.module.name);
+          const commitMessage = moduleNames.length === 1 
+            ? `chore(release): ${moduleNames[0]} ${formatSemVer(allChanges[0].toVersion)}`
+            : `chore(release): update ${moduleNames.length} modules`;
+          
+          // Commit changes
+          await commitChanges(commitMessage, { cwd: this.options.repoRoot });
+          core.info(`  Committed changes: ${commitMessage}`);
+          
+          // Push commits to remote
+          await pushCommits({ cwd: this.options.repoRoot });
+          core.info('  Pushed commits to remote');
+        } else {
+          core.info('  No changes to commit');
+        }
+      } catch (error) {
+        core.warning(`Failed to commit and push changes: ${error}`);
+        // Continue execution - don't fail the entire process if git operations fail
+      }
+    } else {
+      core.info('📦 Skipping commit and push (disabled by push-changes input)');
+    }
+
     // Create tags
     const createdTags: string[] = [];
-    if (this.options.pushTags) {
+    if (this.options.pushTags && this.options.pushChanges) {
       core.info('🏷️ Creating tags...');
       for (const change of allChanges) {
         const tagName = `${change.module.name}@${formatSemVer(change.toVersion)}`;
@@ -356,6 +396,8 @@ export class MonorepoVersionRunner {
       // Push tags
       core.info('📤 Pushing tags...');
       pushTags({ cwd: this.options.repoRoot });
+    } else if (this.options.pushTags && !this.options.pushChanges) {
+      core.info('🏷️ Skipping tag creation and push (disabled by push-changes input)');
     }
 
     core.info('✅ Version management completed successfully!');

@@ -44,4 +44,20 @@ export declare function getCurrentBranch(options?: GitOptions): Promise<string>;
  * Get the current commit short SHA
  */
 export declare function getCurrentCommitShortSha(options?: GitOptions): Promise<string>;
+/**
+ * Add all changed files to git staging area
+ */
+export declare function addChangedFiles(options?: GitOptions): Promise<void>;
+/**
+ * Commit changes with a message
+ */
+export declare function commitChanges(message: string, options?: GitOptions): Promise<void>;
+/**
+ * Push commits to remote
+ */
+export declare function pushCommits(options?: GitOptions): Promise<void>;
+/**
+ * Check if there are changes to commit (staged or unstaged)
+ */
+export declare function hasChangesToCommit(options?: GitOptions): Promise<boolean>;
 //# sourceMappingURL=index.d.ts.map

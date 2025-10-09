@@ -14,6 +14,7 @@ export interface RunnerOptions {
     addBuildMetadata: boolean;
     timestampVersions: boolean;
     gradleSnapshot: boolean;
+    pushChanges: boolean;
 }
 export interface RunnerResult {
     bumped: boolean;

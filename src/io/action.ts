@@ -39,6 +39,7 @@ export async function run(): Promise<void> {
     const addBuildMetadata = parseBooleanInput(core.getInput('add-build-metadata'));
     const timestampVersions = parseBooleanInput(core.getInput('timestamp-versions'));
     const gradleSnapshot = parseBooleanInput(core.getInput('gradle-snapshot'));
+    const pushChanges = parseBooleanInput(core.getInput('push-changes'));
 
     // Get repository root (GitHub Actions sets GITHUB_WORKSPACE)
     const repoRoot = process.env.GITHUB_WORKSPACE || process.cwd();
@@ -57,6 +58,7 @@ export async function run(): Promise<void> {
     core.info(`Add build metadata: ${addBuildMetadata}`);
     core.info(`Timestamp versions: ${timestampVersions}`);
     core.info(`Gradle snapshot: ${gradleSnapshot}`);
+    core.info(`Push changes: ${pushChanges}`);
 
     // Create runner options
     const options: RunnerOptions = {
@@ -74,6 +76,7 @@ export async function run(): Promise<void> {
       addBuildMetadata,
       timestampVersions,
       gradleSnapshot,
+      pushChanges,
     };
 
     // Run the version manager

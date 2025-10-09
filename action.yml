@@ -54,6 +54,10 @@ inputs:
     description: 'Add -SNAPSHOT suffix to all Gradle versions (Gradle convention)'
     required: false
     default: 'false'
+  push-changes:
+    description: 'Commit and push version changes and changelogs to remote'
+    required: false
+    default: 'true'
 outputs:
   bumped:
     description: 'Whether any module was bumped'

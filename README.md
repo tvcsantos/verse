@@ -145,8 +145,56 @@ This applies `-SNAPSHOT` suffix to **all** module versions, generating versions 
 | `add-build-metadata` | Add build metadata with short SHA to all versions | `false` |
 | `timestamp-versions` | Use timestamp-based prerelease identifiers (e.g., alpha.20251008.1530) | `false` |
 | `gradle-snapshot` | Add -SNAPSHOT suffix to all Gradle versions (Gradle convention) | `false` |
+| `push-changes` | Commit and push version changes and changelogs to remote | `true` |
 
 > 📖 **Detailed Pre-release Documentation**: See [PRERELEASE.md](PRERELEASE.md) for comprehensive examples and use cases.
+
+## Git Operations
+
+The action automatically handles git operations as part of the versioning workflow:
+
+### Automatic Commit and Push
+
+By default (`push-changes: true`), the action will:
+1. **Generate** version updates and changelogs
+2. **Commit** all changed files with message: `"chore: update versions and changelogs"`  
+3. **Push** changes to the remote repository
+4. **Create and push** version tags (if `push-tags: true`)
+
+### Disabling Git Operations
+
+For workflows where you want to handle git operations manually:
+
+```yaml
+- name: Version modules (no git operations)
+  uses: your-org/monorepo-versioner@v1
+  with:
+    adapter: gradle
+    push-changes: false    # Disable automatic commit/push
+    push-tags: false       # Disable automatic tag pushing
+```
+
+This is useful when:
+- **Running in forks** or environments without write permissions
+- **Custom commit workflows** that require specific commit messages or signing
+- **Multi-step pipelines** where versioning is separated from publishing
+- **Testing and validation** before committing changes
+
+### Git Configuration Requirements
+
+For git operations to work, ensure your workflow has:
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+    with:
+      fetch-depth: 0        # Full history for version calculation
+      token: ${{ secrets.GITHUB_TOKEN }}  # Or personal access token
+  - name: Configure Git
+    run: |
+      git config --global user.name "github-actions[bot]"
+      git config --global user.email "github-actions[bot]@users.noreply.github.com"
+```
 
 ## Action Outputs
 
