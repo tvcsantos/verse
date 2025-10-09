@@ -29,14 +29,7 @@ export class VersionManager {
     this.pendingUpdates.set(moduleId, versionString);
   }
 
-  /**
-   * Stage a version update using a version string (for build metadata support).
-   * The update will be persisted when commit() is called.
-   * @deprecated Use updateVersion() instead, which now accepts both SemVer and string
-   */
-  updateVersionString(moduleId: string, versionString: string): void {
-    this.updateVersion(moduleId, versionString);
-  }
+
 
   /**
    * Commit all pending version updates to the build system's version files.

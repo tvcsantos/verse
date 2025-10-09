@@ -320,7 +320,7 @@ export class MonorepoVersionRunner {
       const finalVersionString = (change as any).finalVersionString;
       if (finalVersionString) {
         // Use string version for build metadata or Gradle snapshots
-        this.versionManager.updateVersionString(change.module.id, finalVersionString);
+        this.versionManager.updateVersion(change.module.id, finalVersionString);
         core.info(`  Staged ${change.module.id} to ${finalVersionString}`);
       } else {
         // Use SemVer version for normal cases

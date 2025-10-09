@@ -16,12 +16,6 @@ export declare class VersionManager {
      */
     updateVersion(moduleId: string, newVersion: SemVer | string): void;
     /**
-     * Stage a version update using a version string (for build metadata support).
-     * The update will be persisted when commit() is called.
-     * @deprecated Use updateVersion() instead, which now accepts both SemVer and string
-     */
-    updateVersionString(moduleId: string, versionString: string): void;
-    /**
      * Commit all pending version updates to the build system's version files.
      * This method performs all file writes at once to avoid multiple I/O operations.
      * Uses the strategy pattern to delegate build-system specific operations.
