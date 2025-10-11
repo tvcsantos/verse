@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { MonorepoVersionRunner, RunnerOptions } from '../runner.js';
+import { VerseRunner, RunnerOptions } from '../runner.js';
 
 /**
  * Parse comma-separated input values
@@ -19,7 +19,7 @@ function parseBooleanInput(input: string): boolean {
 }
 
 /**
- * Main entry point for GitHub Action
+ * Main entry point for VERSE GitHub Action
  */
 export async function run(): Promise<void> {
   try {
@@ -44,7 +44,7 @@ export async function run(): Promise<void> {
     // Get repository root (GitHub Actions sets GITHUB_WORKSPACE)
     const repoRoot = process.env.GITHUB_WORKSPACE || process.cwd();
 
-    core.info('🚀 Starting Monorepo Version Manager');
+    core.info('🚀 Starting VERSE - Version Engine for Repo Semantic Evolution');
     core.info(`Repository: ${repoRoot}`);
     core.info(`Adapter: ${adapter}`);
     core.info(`Config: ${configPath}`);
@@ -79,8 +79,8 @@ export async function run(): Promise<void> {
       pushChanges,
     };
 
-    // Run the version manager
-    const runner = new MonorepoVersionRunner(options);
+    // Run VERSE engine
+    const runner = new VerseRunner(options);
     const result = await runner.run();
 
     // Set outputs

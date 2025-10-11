@@ -1,7 +1,7 @@
 {
-  "name": "monorepo-version-manager",
+  "name": "verse",
   "version": "1.0.0",
-  "description": "GitHub Action for managing semantic versions in monorepos",
+  "description": "VERSE - Version Engine for Repo Semantic Evolution",
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build src/main.ts -o dist --source-map --minify",
@@ -12,10 +12,13 @@
     "format": "prettier --write src/**/*.ts"
   },
   "keywords": [
+    "verse",
     "github-action",
     "monorepo",
     "semantic-versioning",
     "conventional-commits",
+    "version-engine",
+    "dependency-cascade",
     "gradle",
     "jvm"
   ],

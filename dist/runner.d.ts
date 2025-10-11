@@ -29,7 +29,7 @@ export type RunnerResult = {
     readonly changelogPaths: string[];
     readonly manifestPath?: string;
 };
-export declare class MonorepoVersionRunner {
+export declare class VerseRunner {
     private moduleSystemFactory;
     private hierarchyManager;
     private versionManager;

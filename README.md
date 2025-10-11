@@ -1,6 +1,8 @@
-# Monorepo Version Manager - GitHub Action
+# VERSE - Version Engine for Repo Semantic Evolution
 
-This TypeScript GitHub Action manages semantic versions for projects in a monorepo based on Conventional Commits history. It features independent versioning per module and dependency-aware cascading bumps.
+**VERSE** orchestrates the multiverse of your monorepo, where each module exists as an independent universe with its own semantic evolution timeline. Like cosmic events rippling through space-time, changes in one module intelligently cascade through dependency relationships, ensuring your entire codebase multiverse remains harmoniously synchronized.
+
+This powerful TypeScript GitHub Action harnesses Conventional Commits to automatically evolve semantic versions across your project multiverse, maintaining perfect dimensional stability while allowing each module universe to grow at its own pace.
 
 ## Key Features
 
@@ -30,9 +32,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Version modules
+      - name: VERSE Semantic Evolution
         id: versioner
-        uses: your-org/monorepo-versioner@v1
+        uses: your-org/verse@v1
         with:
           adapter: gradle
           create-releases: true
@@ -61,7 +63,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Create pre-release versions
-        uses: your-org/monorepo-versioner@v1
+        uses: your-org/verse@v1
         with:
           adapter: gradle
           prerelease-mode: true
@@ -88,7 +90,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Create timestamp versions
-        uses: your-org/monorepo-versioner@v1
+        uses: your-org/verse@v1
         with:
           adapter: gradle
           prerelease-mode: true
@@ -120,7 +122,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Create Gradle SNAPSHOT versions
-        uses: your-org/monorepo-versioner@v1
+        uses: your-org/verse@v1
         with:
           adapter: gradle
           gradle-snapshot: true
@@ -167,7 +169,7 @@ For workflows where you want to handle git operations manually:
 
 ```yaml
 - name: Version modules (no git operations)
-  uses: your-org/monorepo-versioner@v1
+  uses: your-org/verse@v1
   with:
     adapter: gradle
     push-changes: false    # Disable automatic commit/push

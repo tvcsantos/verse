@@ -68,7 +68,7 @@ export type RunnerResult = {
   readonly manifestPath?: string;
 };
 
-export class MonorepoVersionRunner {
+export class VerseRunner {
   private moduleSystemFactory: ModuleSystemFactory;
   private hierarchyManager!: HierarchyModuleManager; // Will be initialized in run()
   private versionManager!: VersionManager; // Will be initialized in run()
@@ -81,7 +81,7 @@ export class MonorepoVersionRunner {
   }
 
   async run(): Promise<RunnerResult> {
-    core.info('🚀 Starting Monorepo Version Manager...');
+    core.info('🚀 Starting VERSE - Version Engine for Repo Semantic Evolution...');
     
     // Load configuration
     this.config = await loadConfig(this.options.configPath, this.options.repoRoot);
@@ -362,7 +362,7 @@ export class MonorepoVersionRunner {
       core.info('🏷️ Skipping tag creation and push (disabled by push-changes input)');
     }
 
-    core.info('✅ Version management completed successfully!');
+    core.info('✅ VERSE semantic evolution completed successfully!');
 
     return {
       bumped: true,
