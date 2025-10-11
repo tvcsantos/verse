@@ -1,5 +1,5 @@
 {
-  "name": "verse",
+  "name": "verse-action",
   "version": "1.0.0",
   "description": "VERSE - Version Engine for Repo Semantic Evolution",
   "main": "dist/index.js",
