@@ -4,7 +4,7 @@
   "description": "VERSE - Version Engine for Repo Semantic Evolution",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/main.ts -o dist --source-map --minify && cp init-hierarchy-deps.gradle.kts dist/",
+    "build": "ncc build src/main.ts -o dist --source-map --minify",
     "package": "npm run build",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
