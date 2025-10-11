@@ -29,8 +29,6 @@ export class VersionManager {
     this.pendingUpdates.set(moduleId, versionString);
   }
 
-
-
   /**
    * Commit all pending version updates to the build system's version files.
    * This method performs all file writes at once to avoid multiple I/O operations.

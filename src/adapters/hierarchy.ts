@@ -11,15 +11,15 @@ import { SemVer } from "semver";
  */
 export type ProjectNode = {
   /** Human-readable name of the project */
-  name: string;
+  readonly name: string;
   /** Path from repository root to the project directory */
-  path: string;
+  readonly path: string;
   /** List of subproject ids that are affected when this project changes */
-  affectedSubprojects: string[];
+  readonly affectedSubprojects: string[];
   /** Version of the project */
-  version: string;
+  readonly version: string;
   /** Project type indicating if it's the root project or a submodule */
-  type: 'module' | 'root';
+  readonly type: 'module' | 'root';
 };
 
 /**
@@ -28,7 +28,7 @@ export type ProjectNode = {
  * Root project is represented by ":" or empty string
  */
 export type ProjectHierarchy = {
-  [id: string]: ProjectNode;
+  readonly [id: string]: ProjectNode;
 };
 
 /**
@@ -37,17 +37,17 @@ export type ProjectHierarchy = {
  */
 export type ProjectInfo = {
   /** Project identifier (e.g., ":", ":base", ":spring:core" for Gradle) */
-  id: string;
+  readonly id: string;
   /** Human-readable name of the project */
-  name: string;
+  readonly name: string;
   /** Path from repository root to the project directory */
-  path: string;
+  readonly path: string;
   /** Project type indicating if it's the root project or a submodule */
-  type: 'module' | 'root';
+  readonly type: 'module' | 'root';
   /** Set of projects that are affected when this project changes */
-  affectedProjects: Set<string>;
+  readonly affectedProjects: Set<string>;
   /** Current version of the project */
-  version: SemVer;
+  readonly version: SemVer;
 };
 
 /**
@@ -55,9 +55,9 @@ export type ProjectInfo = {
  */
 export type HierarchyParseResult = {
   /** All project ids found in the hierarchy */
-  projectIds: string[];
+  readonly projectIds: string[];
   /** Map of project id to its metadata (path and dependencies) for efficient lookup */
-  projectMap: Map<string, ProjectInfo>;
+  readonly projectMap: ReadonlyMap<string, ProjectInfo>;
   /** Root project id (usually ":" for Gradle, "." for Maven, etc.) */
-  rootProject: string;
+  readonly rootProject: string;
 };

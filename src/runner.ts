@@ -36,34 +36,34 @@ import { calculateBumpFromCommits } from './utils/commits.js';
 import { applyGradleSnapshot } from './adapters/gradle/gradleUtils.js';
 
 export type RunnerOptions = {
-  repoRoot: string;
-  adapter: string;
-  configPath: string;
-  releaseBranches: string[];
-  dryRun: boolean;
-  createReleases: boolean;
-  pushTags: boolean;
-  fetchDepth: number;
-  prereleaseMode: boolean;
-  prereleaseId: string;
-  bumpUnchanged: boolean;
-  addBuildMetadata: boolean;
-  timestampVersions: boolean;
-  gradleSnapshot: boolean;
-  pushChanges: boolean;
+  readonly repoRoot: string;
+  readonly adapter: string;
+  readonly configPath: string;
+  readonly releaseBranches: string[];
+  readonly dryRun: boolean;
+  readonly createReleases: boolean;
+  readonly pushTags: boolean;
+  readonly fetchDepth: number;
+  readonly prereleaseMode: boolean;
+  readonly prereleaseId: string;
+  readonly bumpUnchanged: boolean;
+  readonly addBuildMetadata: boolean;
+  readonly timestampVersions: boolean;
+  readonly gradleSnapshot: boolean;
+  readonly pushChanges: boolean;
 };
 
 export type RunnerResult = {
-  bumped: boolean;
-  changedModules: Array<{
-    id: string;
-    from: string;
-    to: string;
-    bumpType: BumpType;
+  readonly bumped: boolean;
+  readonly changedModules: Array<{
+    readonly id: string;
+    readonly from: string;
+    readonly to: string;
+    readonly bumpType: BumpType;
   }>;
-  createdTags: string[];
-  changelogPaths: string[];
-  manifestPath?: string;
+  readonly createdTags: string[];
+  readonly changelogPaths: string[];
+  readonly manifestPath?: string;
 };
 
 export class MonorepoVersionRunner {

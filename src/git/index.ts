@@ -4,14 +4,14 @@ import * as conventionalCommitsParser from 'conventional-commits-parser';
 import * as core from '@actions/core';
 
 export type GitTag = {
-  name: string;
-  hash: string;
-  module?: string;
-  version?: string;
+  readonly name: string;
+  readonly hash: string;
+  readonly module?: string;
+  readonly version?: string;
 };
 
 export type GitOptions = {
-  cwd?: string;
+  readonly cwd?: string;
 };
 
 /**

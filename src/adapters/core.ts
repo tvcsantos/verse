@@ -3,8 +3,8 @@ import { ProjectInfo } from "./hierarchy.js";
 import { HierarchyModuleManager } from "./hierarchy/hierarchyModuleManager.js";
 
 export type ProcessingModuleChange = {
-  module: ProjectInfo;
-  fromVersion: SemVer;
+  readonly module: ProjectInfo;
+  readonly fromVersion: SemVer;
   toVersion: string;
   bumpType: BumpType;
   reason: ChangeReason | 'unchanged';
@@ -12,11 +12,11 @@ export type ProcessingModuleChange = {
 };
 
 export type ProcessedModuleChange = {
-  module: ProjectInfo;
-  fromVersion: SemVer;
-  toVersion: string;
-  bumpType: BumpType;
-  reason: ChangeReason;
+  readonly module: ProjectInfo;
+  readonly fromVersion: SemVer;
+  readonly toVersion: string;
+  readonly bumpType: BumpType;
+  readonly reason: ChangeReason;
 };
 
 export type BumpType = 'major' | 'minor' | 'patch' | 'none';
@@ -36,13 +36,13 @@ export interface VersionUpdateStrategy {
 }
 
 export type CommitInfo = {
-  hash: string;
-  type: string;
-  scope?: string;
-  subject: string;
-  body?: string;
-  breaking: boolean;
-  module?: string;
+  readonly hash: string;
+  readonly type: string;
+  readonly scope?: string;
+  readonly subject: string;
+  readonly body?: string;
+  readonly breaking: boolean;
+  readonly module?: string;
 };
 
 export interface ModuleDetector {

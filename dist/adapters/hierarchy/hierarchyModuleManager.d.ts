@@ -18,6 +18,6 @@ export declare class HierarchyModuleManager {
     /**
      * Get all modules as a map (each ProjectInfo includes current version)
      */
-    getModules(): Map<string, ProjectInfo>;
+    getModules(): ReadonlyMap<string, ProjectInfo>;
 }
 //# sourceMappingURL=hierarchyModuleManager.d.ts.map

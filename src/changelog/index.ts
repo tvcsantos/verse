@@ -6,21 +6,21 @@ import { formatSemVer } from '../semver/index.js';
 import { SemVer } from 'semver';
 
 export type ChangelogEntry = {
-  module: ProjectInfo;
-  version: string;
-  date: string;
-  changes: {
-    breaking: CommitInfo[];
-    features: CommitInfo[];
-    fixes: CommitInfo[];
-    other: CommitInfo[];
+  readonly module: ProjectInfo;
+  readonly version: string;
+  readonly date: string;
+  readonly changes: {
+    readonly breaking: CommitInfo[];
+    readonly features: CommitInfo[];
+    readonly fixes: CommitInfo[];
+    readonly other: CommitInfo[];
   };
 };
 
 export type ChangelogOptions = {
-  includeCommitHashes: boolean;
-  includeScopes: boolean;
-  groupByType: boolean;
+  readonly includeCommitHashes: boolean;
+  readonly includeScopes: boolean;
+  readonly groupByType: boolean;
 };
 
 /**

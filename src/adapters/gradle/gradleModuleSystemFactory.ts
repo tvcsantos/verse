@@ -1,5 +1,5 @@
 import { ModuleSystemFactory, ModuleDetector, VersionUpdateStrategy } from '../core.js';
-import { GradleModuleDetector } from './gradleAdapter.js';
+import { GradleModuleDetector } from './gradleModuleDetector.js';
 import { GradleVersionUpdateStrategy } from './gradleVersionUpdateStrategy.js';
 
 /**
