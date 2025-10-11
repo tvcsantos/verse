@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import * as core from '@actions/core';
 import { BumpType } from '../adapters/core.js';
+import { fileExists } from '../utils/file.js';
 
 export interface Config {
   defaultBump: BumpType;
@@ -15,7 +16,6 @@ export interface DependencyRules {
   onMajorOfDependency: BumpType;
   onMinorOfDependency: BumpType;
   onPatchOfDependency: BumpType;
-  strictCompatibility: boolean;
 }
 
 export interface GradleConfig {
@@ -45,7 +45,6 @@ const DEFAULT_CONFIG: Config = {
     onMajorOfDependency: 'minor',
     onMinorOfDependency: 'patch',
     onPatchOfDependency: 'none',
-    strictCompatibility: false,
   },
   gradle: {
     versionSource: ['gradle.properties'],
@@ -58,17 +57,18 @@ const DEFAULT_CONFIG: Config = {
 export async function loadConfig(configPath: string, repoRoot: string): Promise<Config> {
   const fullPath = join(repoRoot, configPath);
   
+  // Check if file exists first
+  if (!(await fileExists(fullPath))) {
+    core.info(`No config file found at ${configPath}, using defaults`);
+    return DEFAULT_CONFIG;
+  }
+  
   try {
     const configContent = await fs.readFile(fullPath, 'utf8');
     const userConfig = JSON.parse(configContent);
     
     return mergeConfig(DEFAULT_CONFIG, userConfig);
   } catch (error) {
-    if (error instanceof Error && 'code' in error && (error as any).code === 'ENOENT') {
-      core.info(`No config file found at ${configPath}, using defaults`);
-      return DEFAULT_CONFIG;
-    }
-    
     throw new Error(`Failed to load config from ${configPath}: ${error}`);
   }
 }
@@ -166,10 +166,6 @@ export function validateConfig(config: Config): void {
   
   if (!validDepBumpTypes.includes(depRules.onPatchOfDependency)) {
     throw new Error(`Invalid onPatchOfDependency: ${depRules.onPatchOfDependency}`);
-  }
-  
-  if (typeof depRules.strictCompatibility !== 'boolean') {
-    throw new Error(`strictCompatibility must be a boolean`);
   }
 }
 

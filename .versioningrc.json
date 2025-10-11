@@ -15,10 +15,9 @@
   "dependencyRules": {
     "onMajorOfDependency": "minor",
     "onMinorOfDependency": "patch",
-    "onPatchOfDependency": "none",
-    "strictCompatibility": false
+    "onPatchOfDependency": "none"
   },
   "gradle": {
-    "versionSource": ["version-catalog", "gradle.properties", "build.gradle.kts"]
+    "versionSource": ["gradle.properties"]
   }
 }

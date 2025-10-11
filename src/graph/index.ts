@@ -65,7 +65,7 @@ export function calculateCascadeEffects(
         const cascadeChange: ModuleChange = {
           module: projectInfo,
           fromVersion: createInitialVersion(), // Will be filled in by caller
-          toVersion: createInitialVersion(), // Will be filled in by caller
+          toVersion: '', // Will be filled in by caller
           bumpType: requiredBump,
           reason: 'cascade',
         };

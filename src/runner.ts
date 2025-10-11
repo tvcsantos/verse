@@ -31,6 +31,7 @@ import {
   generateRootChangelog
 } from './changelog/index.js';
 import { calculateBumpFromCommits } from './utils/commits.js';
+import { applyGradleSnapshot } from './adapters/gradle/gradleUtils.js';
 
 export interface RunnerOptions {
   repoRoot: string;
@@ -171,37 +172,34 @@ export class MonorepoVersionRunner {
       }
       
       if (shouldBump) {
-        let newVersion: SemVer;
+        let newVersion: SemVer = currentVersion;
         
-        if (actualBumpType === 'none' && reason === 'build-metadata') {
-          // Only add build metadata to existing version without bumping
-          newVersion = this.options.addBuildMetadata && shortSha 
-            ? addBuildMetadata(currentVersion, shortSha)
-            : currentVersion;
-        } else {
-          // Normal version bump
-          if (this.options.prereleaseMode) {
-            newVersion = bumpToPrerelease(currentVersion, actualBumpType, effectivePrereleaseId);
-          } else {
-            newVersion = bumpSemVer(currentVersion, actualBumpType);
-          }
-          
-          // Add build metadata if enabled
-          if (this.options.addBuildMetadata && shortSha) {
-            newVersion = addBuildMetadata(newVersion, shortSha);
-          }
+        // Handle different versioning scenarios
+        if (actualBumpType !== 'none' && this.options.prereleaseMode) {
+          // Scenario 1: Commits with changes in prerelease mode
+          newVersion = bumpToPrerelease(currentVersion, actualBumpType, effectivePrereleaseId);
+        } else if (actualBumpType !== 'none' && !this.options.prereleaseMode) {
+          // Scenario 2: Commits with changes in normal mode
+          newVersion = bumpSemVer(currentVersion, actualBumpType);
+        } else if (reason === 'prerelease-unchanged') {
+          // Scenario 3: No changes but force prerelease bump (bumpUnchanged enabled)
+          // Implied: actualBumpType === 'none' (from cascade)
+          newVersion = bumpToPrerelease(currentVersion, 'none', effectivePrereleaseId);
+        }
+        // Scenario 4: reason === 'build-metadata' - no version bump, keep currentVersion
+        
+        // Add build metadata if enabled (applies to all scenarios)
+        if (this.options.addBuildMetadata && shortSha) {
+          newVersion = addBuildMetadata(newVersion, shortSha);
         }
         
         moduleChanges.push({
           module: projectInfo,
           fromVersion: currentVersion,
-          toVersion: newVersion,
+          toVersion: formatSemVer(newVersion),
           bumpType: actualBumpType,
           reason: reason,
         });
-        
-        // Store the final version string (using formatSemVer which preserves build metadata via .raw)
-        (moduleChanges[moduleChanges.length - 1] as any).finalVersionString = formatSemVer(newVersion);
       }
     }
 
@@ -225,15 +223,12 @@ export class MonorepoVersionRunner {
           newVersion = bumpSemVer(change.fromVersion, change.bumpType);
         }
         
-        change.toVersion = newVersion;
-        
         // Add build metadata to cascade changes if enabled
         if (this.options.addBuildMetadata && shortSha) {
-          change.toVersion = addBuildMetadata(newVersion, shortSha);
+          newVersion = addBuildMetadata(newVersion, shortSha);
         }
         
-        // Store final version string (formatSemVer preserves build metadata via .raw)
-        (change as any).finalVersionString = formatSemVer(change.toVersion);
+        change.toVersion = formatSemVer(newVersion);
       }
     }
 
@@ -249,16 +244,11 @@ export class MonorepoVersionRunner {
       };
     }
 
-    // Apply Gradle snapshot suffix to final versions if enabled
+    // Apply Gradle snapshot suffix directly to toVersion if enabled
     if (this.options.gradleSnapshot && this.options.adapter === 'gradle') {
-      // Update changed modules
+      // Update changed modules - apply snapshot transformation directly to toVersion
       for (const change of allChanges) {
-        const finalVersionString = (change as any).finalVersionString;
-        if (finalVersionString) {
-          (change as any).finalVersionString = this.applyGradleSnapshot(finalVersionString);
-        } else {
-          (change as any).finalVersionString = this.applyGradleSnapshot(formatSemVer(change.toVersion));
-        }
+        change.toVersion = applyGradleSnapshot(change.toVersion);
       }
 
       // Handle unchanged modules that also need -SNAPSHOT suffix
@@ -267,19 +257,17 @@ export class MonorepoVersionRunner {
         if (!changedModuleIds.has(moduleId)) {
           const currentVersion = moduleInfo.version;
           const versionString = formatSemVer(currentVersion);
-          const snapshotVersion = this.applyGradleSnapshot(versionString);
+          const snapshotVersion = applyGradleSnapshot(versionString);
           
           // Only add to changes if the version doesn't already have -SNAPSHOT
           if (snapshotVersion !== versionString) {
             allChanges.push({
               module: moduleInfo,
               fromVersion: currentVersion,
-              toVersion: currentVersion, // No actual version bump
+              toVersion: snapshotVersion, // Apply snapshot directly to toVersion
               bumpType: 'none',
               reason: 'gradle-snapshot' as any,
             });
-            // Set the final version string for this change
-            (allChanges[allChanges.length - 1] as any).finalVersionString = snapshotVersion;
           }
         }
       }
@@ -287,9 +275,8 @@ export class MonorepoVersionRunner {
 
     core.info(`📈 Planning to update ${allChanges.length} modules:`);
     for (const change of allChanges) {
-      const finalVersionString = (change as any).finalVersionString;
       const from = formatSemVer(change.fromVersion);
-      const to = finalVersionString || formatSemVer(change.toVersion);
+      const to = change.toVersion;
       core.info(`  ${change.module.id}: ${from} → ${to} (${change.bumpType}, ${change.reason})`);
     }
 
@@ -297,19 +284,13 @@ export class MonorepoVersionRunner {
       core.info('🏃‍♂️ Dry run mode - no changes will be written');
       return {
         bumped: true,
-        changedModules: allChanges.map(change => {
-          const finalVersionString = (change as any).finalVersionString;
-          return {
-            id: change.module.id,
-            from: formatSemVer(change.fromVersion),
-            to: finalVersionString || formatSemVer(change.toVersion),
-            bumpType: change.bumpType,
-          };
-        }),
-        createdTags: allChanges.map(change => {
-          const finalVersionString = (change as any).finalVersionString;
-          return `${change.module.name}@${finalVersionString || formatSemVer(change.toVersion)}`;
-        }),
+        changedModules: allChanges.map(change => ({
+          id: change.module.id,
+          from: formatSemVer(change.fromVersion),
+          to: change.toVersion,
+          bumpType: change.bumpType,
+        })),
+        createdTags: allChanges.map(change => `${change.module.name}@${change.toVersion}`),
         changelogPaths: [],
       };
     }
@@ -317,16 +298,9 @@ export class MonorepoVersionRunner {
     // Stage new versions in memory
     core.info('✍️ Staging new versions...');
     for (const change of allChanges) {
-      const finalVersionString = (change as any).finalVersionString;
-      if (finalVersionString) {
-        // Use string version for build metadata or Gradle snapshots
-        this.versionManager.updateVersion(change.module.id, finalVersionString);
-        core.info(`  Staged ${change.module.id} to ${finalVersionString}`);
-      } else {
-        // Use SemVer version for normal cases
-        this.versionManager.updateVersion(change.module.id, change.toVersion);
-        core.info(`  Staged ${change.module.id} to ${formatSemVer(change.toVersion)}`);
-      }
+      // Use toVersion directly (now includes all transformations like Gradle snapshots)
+      this.versionManager.updateVersion(change.module.id, change.toVersion);
+      core.info(`  Staged ${change.module.id} to ${change.toVersion}`);
     }
 
     // Commit all version updates to files
@@ -360,7 +334,7 @@ export class MonorepoVersionRunner {
           // Create commit message
           const moduleNames = allChanges.map(change => change.module.name);
           const commitMessage = moduleNames.length === 1 
-            ? `chore(release): ${moduleNames[0]} ${formatSemVer(allChanges[0].toVersion)}`
+            ? `chore(release): ${moduleNames[0]} ${allChanges[0].toVersion}`
             : `chore(release): update ${moduleNames.length} modules`;
           
           // Commit changes
@@ -386,8 +360,8 @@ export class MonorepoVersionRunner {
     if (this.options.pushTags && this.options.pushChanges) {
       core.info('🏷️ Creating tags...');
       for (const change of allChanges) {
-        const tagName = `${change.module.name}@${formatSemVer(change.toVersion)}`;
-        const message = `Release ${change.module.name} v${formatSemVer(change.toVersion)}`;
+        const tagName = `${change.module.name}@${change.toVersion}`;
+        const message = `Release ${change.module.name} v${change.toVersion}`;
         
         createTag(tagName, message, { cwd: this.options.repoRoot });
         createdTags.push(tagName);
@@ -405,30 +379,14 @@ export class MonorepoVersionRunner {
 
     return {
       bumped: true,
-      changedModules: allChanges.map(change => {
-        const finalVersionString = (change as any).finalVersionString;
-        return {
-          id: change.module.id,
-          from: formatSemVer(change.fromVersion),
-          to: finalVersionString || formatSemVer(change.toVersion),
-          bumpType: change.bumpType,
-        };
-      }),
+      changedModules: allChanges.map(change => ({
+        id: change.module.id,
+        from: formatSemVer(change.fromVersion),
+        to: change.toVersion,
+        bumpType: change.bumpType,
+      })),
       createdTags,
       changelogPaths,
     };
-  }
-
-  /**
-   * Apply Gradle -SNAPSHOT suffix to a version string.
-   * This follows Gradle convention where -SNAPSHOT is appended to all versions.
-   */
-  private applyGradleSnapshot(version: string): string {
-    // Don't add -SNAPSHOT if it's already there
-    if (version.endsWith('-SNAPSHOT')) {
-      return version;
-    }
-    
-    return `${version}-SNAPSHOT`;
   }
 }

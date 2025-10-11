@@ -36,9 +36,4 @@ export declare class MonorepoVersionRunner {
     private options;
     constructor(options: RunnerOptions);
     run(): Promise<RunnerResult>;
-    /**
-     * Apply Gradle -SNAPSHOT suffix to a version string.
-     * This follows Gradle convention where -SNAPSHOT is appended to all versions.
-     */
-    private applyGradleSnapshot;
 }

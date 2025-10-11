@@ -1,9 +1,8 @@
 import { ModuleChange, CommitInfo } from '../adapters/core.js';
 import { ProjectInfo } from '../adapters/hierarchy.js';
-import { SemVer } from 'semver';
 export interface ChangelogEntry {
     module: ProjectInfo;
-    version: SemVer;
+    version: string;
     date: string;
     changes: {
         breaking: CommitInfo[];

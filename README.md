@@ -225,8 +225,7 @@ Create `.versioningrc.json` in your repository root:
   "dependencyRules": {
     "onMajorOfDependency": "minor",
     "onMinorOfDependency": "patch",
-    "onPatchOfDependency": "noop",
-    "strictCompatibility": false
+    "onPatchOfDependency": "noop"
   },
   "gradle": {
     "versionSource": ["version-catalog", "gradle.properties", "build.gradle.kts"],

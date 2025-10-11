@@ -7,7 +7,7 @@ import { SemVer } from 'semver';
 
 export interface ChangelogEntry {
   module: ProjectInfo;
-  version: SemVer;
+  version: string;
   date: string;
   changes: {
     breaking: CommitInfo[];
@@ -68,7 +68,7 @@ export async function generateChangelog(
  * Format changelog entry as markdown
  */
 function formatChangelogEntry(entry: ChangelogEntry, options: ChangelogOptions): string {
-  const version = formatSemVer(entry.version);
+  const version = entry.version;
   let changelog = `## [${version}] - ${entry.date}\n\n`;
 
   // Breaking changes first
@@ -239,7 +239,7 @@ export async function generateRootChangelog(
     
     for (const moduleChange of moduleChanges) {
       const fromVersion = formatSemVer(moduleChange.fromVersion);
-      const toVersion = formatSemVer(moduleChange.toVersion);
+      const toVersion = moduleChange.toVersion;
       const moduleName = moduleChange.module.id === 'root' ? 'Root' : moduleChange.module.id;
       
       content += `- **${moduleName}**: ${fromVersion} → ${toVersion}\n`;

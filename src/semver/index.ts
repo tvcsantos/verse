@@ -150,8 +150,6 @@ export function addBuildMetadata(version: SemVer, buildMetadata: string): SemVer
   return parseSemVer(newVersionString);
 }
 
-
-
 /**
  * Generate a timestamp-based prerelease identifier
  * Format: {baseId}.{YYYYMMDD}.{HHMM}

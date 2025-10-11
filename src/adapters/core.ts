@@ -5,7 +5,7 @@ import { HierarchyModuleManager } from "./hierarchy/hierarchyModuleManager.js";
 export interface ModuleChange {
   module: ProjectInfo;
   fromVersion: SemVer;
-  toVersion: SemVer;
+  toVersion: string;
   bumpType: BumpType;
   reason: ChangeReason;
 }

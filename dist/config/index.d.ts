@@ -10,7 +10,6 @@ export interface DependencyRules {
     onMajorOfDependency: BumpType;
     onMinorOfDependency: BumpType;
     onPatchOfDependency: BumpType;
-    strictCompatibility: boolean;
 }
 export interface GradleConfig {
     versionSource: ('gradle.properties')[];

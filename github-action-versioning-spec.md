@@ -97,8 +97,7 @@ interface LanguageAdapter {
   "dependencyRules": {
     "onMajorOfDependency": "minor",
     "onMinorOfDependency": "patch",
-    "onPatchOfDependency": "noop",
-    "strictCompatibility": false
+    "onPatchOfDependency": "noop"
   },
   "gradle": {
     "versionSource": ["gradle.properties", "build.gradle.kts"],
