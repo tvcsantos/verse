@@ -5,7 +5,7 @@ import { ProjectInfo } from '../adapters/hierarchy.js';
 import { formatSemVer } from '../semver/index.js';
 import { SemVer } from 'semver';
 
-export interface ChangelogEntry {
+export type ChangelogEntry = {
   module: ProjectInfo;
   version: string;
   date: string;
@@ -15,13 +15,13 @@ export interface ChangelogEntry {
     fixes: CommitInfo[];
     other: CommitInfo[];
   };
-}
+};
 
-export interface ChangelogOptions {
+export type ChangelogOptions = {
   includeCommitHashes: boolean;
   includeScopes: boolean;
   groupByType: boolean;
-}
+};
 
 /**
  * Generate changelog for a module

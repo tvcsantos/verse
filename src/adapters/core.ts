@@ -2,22 +2,22 @@ import { SemVer } from "semver";
 import { ProjectInfo } from "./hierarchy.js";
 import { HierarchyModuleManager } from "./hierarchy/hierarchyModuleManager.js";
 
-export interface ProcessingModuleChange {
+export type ProcessingModuleChange = {
   module: ProjectInfo;
   fromVersion: SemVer;
   toVersion: string;
   bumpType: BumpType;
   reason: ChangeReason | 'unchanged';
   needsProcessing: boolean;
-}
+};
 
-export interface ProcessedModuleChange {
+export type ProcessedModuleChange = {
   module: ProjectInfo;
   fromVersion: SemVer;
   toVersion: string;
   bumpType: BumpType;
   reason: ChangeReason;
-}
+};
 
 export type BumpType = 'major' | 'minor' | 'patch' | 'none';
 
@@ -35,7 +35,7 @@ export interface VersionUpdateStrategy {
   writeVersionUpdates(moduleVersions: Map<string, string>): Promise<void>;
 }
 
-export interface CommitInfo {
+export type CommitInfo = {
   hash: string;
   type: string;
   scope?: string;
@@ -43,7 +43,7 @@ export interface CommitInfo {
   body?: string;
   breaking: boolean;
   module?: string;
-}
+};
 
 export interface ModuleDetector {
   readonly repoRoot: string;

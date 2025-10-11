@@ -1,5 +1,5 @@
 import { BumpType } from './adapters/core.js';
-export interface RunnerOptions {
+export type RunnerOptions = {
     repoRoot: string;
     adapter: string;
     configPath: string;
@@ -15,8 +15,8 @@ export interface RunnerOptions {
     timestampVersions: boolean;
     gradleSnapshot: boolean;
     pushChanges: boolean;
-}
-export interface RunnerResult {
+};
+export type RunnerResult = {
     bumped: boolean;
     changedModules: Array<{
         id: string;
@@ -27,7 +27,7 @@ export interface RunnerResult {
     createdTags: string[];
     changelogPaths: string[];
     manifestPath?: string;
-}
+};
 export declare class MonorepoVersionRunner {
     private moduleSystemFactory;
     private hierarchyManager;

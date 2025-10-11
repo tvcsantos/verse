@@ -1,23 +1,23 @@
 import { BumpType } from '../adapters/core.js';
-export interface Config {
+export type Config = {
     defaultBump: BumpType;
     commitTypes: Record<string, BumpType | 'ignore'>;
     dependencyRules: DependencyRules;
     gradle?: GradleConfig;
     nodejs?: NodeJSConfig;
-}
-export interface DependencyRules {
+};
+export type DependencyRules = {
     onMajorOfDependency: BumpType;
     onMinorOfDependency: BumpType;
     onPatchOfDependency: BumpType;
-}
-export interface GradleConfig {
+};
+export type GradleConfig = {
     versionSource: ('gradle.properties')[];
-}
-export interface NodeJSConfig {
+};
+export type NodeJSConfig = {
     versionSource: ('package.json')[];
     updatePackageLock: boolean;
-}
+};
 /**
  * Load configuration from file or return default
  */

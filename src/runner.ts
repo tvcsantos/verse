@@ -35,7 +35,7 @@ import {
 import { calculateBumpFromCommits } from './utils/commits.js';
 import { applyGradleSnapshot } from './adapters/gradle/gradleUtils.js';
 
-export interface RunnerOptions {
+export type RunnerOptions = {
   repoRoot: string;
   adapter: string;
   configPath: string;
@@ -51,9 +51,9 @@ export interface RunnerOptions {
   timestampVersions: boolean;
   gradleSnapshot: boolean;
   pushChanges: boolean;
-}
+};
 
-export interface RunnerResult {
+export type RunnerResult = {
   bumped: boolean;
   changedModules: Array<{
     id: string;
@@ -64,7 +64,7 @@ export interface RunnerResult {
   createdTags: string[];
   changelogPaths: string[];
   manifestPath?: string;
-}
+};
 
 export class MonorepoVersionRunner {
   private moduleSystemFactory: ModuleSystemFactory;

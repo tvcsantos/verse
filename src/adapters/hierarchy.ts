@@ -9,7 +9,7 @@ import { SemVer } from "semver";
 /**
  * Represents a single project in the hierarchy with its dependencies
  */
-export interface ProjectNode {
+export type ProjectNode = {
   /** Human-readable name of the project */
   name: string;
   /** Path from repository root to the project directory */
@@ -20,22 +20,22 @@ export interface ProjectNode {
   version: string;
   /** Project type indicating if it's the root project or a submodule */
   type: 'module' | 'root';
-}
+};
 
 /**
  * Complete project hierarchy dependencies structure
  * Keys are project paths (e.g., ":", ":base", ":spring:core" for Gradle)
  * Root project is represented by ":" or empty string
  */
-export interface ProjectHierarchy {
+export type ProjectHierarchy = {
   [id: string]: ProjectNode;
-}
+};
 
 /**
  * Represents a project's metadata including path, affected projects, version, and module information
  * This interface replaces the need for the Module interface
  */
-export interface ProjectInfo {
+export type ProjectInfo = {
   /** Project identifier (e.g., ":", ":base", ":spring:core" for Gradle) */
   id: string;
   /** Human-readable name of the project */
@@ -48,16 +48,16 @@ export interface ProjectInfo {
   affectedProjects: Set<string>;
   /** Current version of the project */
   version: SemVer;
-}
+};
 
 /**
  * Result of parsing the hierarchy dependencies
  */
-export interface HierarchyParseResult {
+export type HierarchyParseResult = {
   /** All project ids found in the hierarchy */
   projectIds: string[];
   /** Map of project id to its metadata (path and dependencies) for efficient lookup */
   projectMap: Map<string, ProjectInfo>;
   /** Root project id (usually ":" for Gradle, "." for Maven, etc.) */
   rootProject: string;
-}
+};

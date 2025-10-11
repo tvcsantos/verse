@@ -1,6 +1,6 @@
 import { CommitInfo, ProcessedModuleChange } from '../adapters/core.js';
 import { ProjectInfo } from '../adapters/hierarchy.js';
-export interface ChangelogEntry {
+export type ChangelogEntry = {
     module: ProjectInfo;
     version: string;
     date: string;
@@ -10,12 +10,12 @@ export interface ChangelogEntry {
         fixes: CommitInfo[];
         other: CommitInfo[];
     };
-}
-export interface ChangelogOptions {
+};
+export type ChangelogOptions = {
     includeCommitHashes: boolean;
     includeScopes: boolean;
     groupByType: boolean;
-}
+};
 /**
  * Generate changelog for a module
  */
