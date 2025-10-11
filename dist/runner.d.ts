@@ -16,14 +16,15 @@ export type RunnerOptions = {
     readonly gradleSnapshot: boolean;
     readonly pushChanges: boolean;
 };
+export type ModuleChangeResult = {
+    readonly id: string;
+    readonly from: string;
+    readonly to: string;
+    readonly bumpType: BumpType;
+};
 export type RunnerResult = {
     readonly bumped: boolean;
-    readonly changedModules: Array<{
-        readonly id: string;
-        readonly from: string;
-        readonly to: string;
-        readonly bumpType: BumpType;
-    }>;
+    readonly changedModules: Array<ModuleChangeResult>;
     readonly createdTags: string[];
     readonly changelogPaths: string[];
     readonly manifestPath?: string;
