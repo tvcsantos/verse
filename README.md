@@ -1,3 +1,5 @@
+![VERSE - Version Engine for Repo Semantic Evolution](docs/assets/images/verse.png)
+
 # VERSE - Version Engine for Repo Semantic Evolution
 
 **VERSE** orchestrates the multiverse of your monorepo, where each module exists as an independent universe with its own semantic evolution timeline. Like cosmic events rippling through space-time, changes in one module intelligently cascade through dependency relationships, ensuring your entire codebase multiverse remains harmoniously synchronized.
