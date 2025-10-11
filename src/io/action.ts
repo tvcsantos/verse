@@ -44,7 +44,19 @@ export async function run(): Promise<void> {
     // Get repository root (GitHub Actions sets GITHUB_WORKSPACE)
     const repoRoot = process.env.GITHUB_WORKSPACE || process.cwd();
 
-    core.info('🚀 Starting VERSE - Version Engine for Repo Semantic Evolution');
+    // Print cool ASCII art
+    core.info('');
+    core.info('██╗   ██╗███████╗██████╗ ███████╗███████╗');
+    core.info('██║   ██║██╔════╝██╔══██╗██╔════╝██╔════╝');
+    core.info('██║   ██║█████╗  ██████╔╝███████╗█████╗  ');
+    core.info('╚██╗ ██╔╝██╔══╝  ██╔══██╗╚════██║██╔══╝  ');
+    core.info(' ╚████╔╝ ███████╗██║  ██║███████║███████╗');
+    core.info('  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝');
+    core.info('');
+    core.info('🌌 Version Engine for Repo Semantic Evolution');
+    core.info('   Orchestrating your monorepo multiverse...');
+    core.info('');
+    core.info('🚀 Starting VERSE engine...');
     core.info(`Repository: ${repoRoot}`);
     core.info(`Adapter: ${adapter}`);
     core.info(`Config: ${configPath}`);
