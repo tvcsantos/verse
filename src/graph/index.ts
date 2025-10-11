@@ -1,35 +1,37 @@
-import { ModuleChange, BumpType } from '../adapters/core.js';
+import { ProcessingModuleChange, BumpType } from '../adapters/core.js';
 import { ProjectInfo } from '../adapters/hierarchy.js';
 import { HierarchyModuleManager } from '../adapters/hierarchy/hierarchyModuleManager.js';
 import { maxBumpType, createInitialVersion } from '../semver/index.js';
 
-export interface CascadeResult {
-  changes: ModuleChange[];
-  processed: Set<string>;
-}
-
 /**
- * Calculate cascade effects when modules change
+ * Calculate cascade effects when modules change.
+ * Modifies the input array in place and returns all modules with cascade effects applied.
  */
 export function calculateCascadeEffects(
   moduleManager: HierarchyModuleManager,
-  initialChanges: ModuleChange[],
+  allModuleChanges: ProcessingModuleChange[],
   getDependencyBumpType: (dependencyBump: BumpType) => BumpType
-): CascadeResult {
-  const changes = [...initialChanges];
+): ProcessingModuleChange[] {
   const processed = new Set<string>();
-  const changeMap = new Map<string, ModuleChange>();
-
-  // Index initial changes
-  for (const change of initialChanges) {
-    changeMap.set(change.module.id, change);
-    processed.add(change.module.id);
+  const moduleMap = new Map<string, ProcessingModuleChange>();
+  
+  // Create module map for O(1) lookups
+  for (const change of allModuleChanges) {
+    moduleMap.set(change.module.id, change);
   }
-
-  const queue = [...initialChanges];
+  
+  // Start with ALL modules - treat them completely equally
+  const queue = [...allModuleChanges];
 
   while (queue.length > 0) {
     const currentChange = queue.shift()!;
+    
+    // Skip if already processed or no processing needed or no actual bump
+    if (processed.has(currentChange.module.id) || !currentChange.needsProcessing || currentChange.bumpType === 'none') {
+      continue;
+    }
+    
+    processed.add(currentChange.module.id);
     const currentModuleInfo = moduleManager.getModuleInfo(currentChange.module.id);
 
     for (const dependentName of currentModuleInfo.affectedProjects) {
@@ -37,11 +39,10 @@ export function calculateCascadeEffects(
         continue; // Already processed this module
       }
 
-      let projectInfo: ProjectInfo;
-      try {
-        projectInfo = moduleManager.getModuleInfo(dependentName);
-      } catch {
-        continue; // Module not found
+      // Get the dependent module using O(1) lookup
+      const existingChange = moduleMap.get(dependentName);
+      if (!existingChange) {
+        continue; // Module not found in our module list
       }
 
       // Calculate the bump needed for the dependent
@@ -51,36 +52,20 @@ export function calculateCascadeEffects(
         continue; // No cascade needed
       }
 
-      // Check if we already have a change for this module
-      const existingChange = changeMap.get(dependentName);
-      if (existingChange) {
-        // Merge with existing change if this bump is higher
-        const mergedBump = maxBumpType([existingChange.bumpType, requiredBump]);
-        if (mergedBump !== existingChange.bumpType) {
-          existingChange.bumpType = mergedBump;
-          queue.push(existingChange); // Re-process with new bump type
-        }
-      } else {
-        // Create new cascade change
-        const cascadeChange: ModuleChange = {
-          module: projectInfo,
-          fromVersion: createInitialVersion(), // Will be filled in by caller
-          toVersion: '', // Will be filled in by caller
-          bumpType: requiredBump,
-          reason: 'cascade',
-        };
-
-        changes.push(cascadeChange);
-        changeMap.set(dependentName, cascadeChange);
-        queue.push(cascadeChange);
+      // Update the existing change with cascade information
+      const mergedBump = maxBumpType([existingChange.bumpType, requiredBump]);
+      if (mergedBump !== existingChange.bumpType || !existingChange.needsProcessing) {
+        // Update the module change in place
+        existingChange.bumpType = mergedBump;
+        existingChange.reason = 'cascade';
+        existingChange.needsProcessing = true;
+        
+        // Add to queue for further processing
+        queue.push(existingChange);
       }
-
-      processed.add(dependentName);
     }
   }
 
-  return {
-    changes,
-    processed,
-  };
+  // Return the modified array (same reference, but with cascade effects applied)
+  return allModuleChanges;
 }

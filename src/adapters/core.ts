@@ -2,17 +2,26 @@ import { SemVer } from "semver";
 import { ProjectInfo } from "./hierarchy.js";
 import { HierarchyModuleManager } from "./hierarchy/hierarchyModuleManager.js";
 
-export interface ModuleChange {
+export interface ProcessingModuleChange {
   module: ProjectInfo;
   fromVersion: SemVer;
   toVersion: string;
   bumpType: BumpType;
   reason: ChangeReason;
+  needsProcessing: boolean;
+}
+
+export interface ProcessedModuleChange {
+  module: ProjectInfo;
+  fromVersion: SemVer;
+  toVersion: string;
+  bumpType: BumpType;
+  reason: Exclude<ChangeReason, 'unchanged'>;
 }
 
 export type BumpType = 'major' | 'minor' | 'patch' | 'none';
 
-export type ChangeReason = 'commits' | 'dependency' | 'cascade' | 'prerelease-unchanged' | 'build-metadata';
+export type ChangeReason = 'commits' | 'dependency' | 'cascade' | 'prerelease-unchanged' | 'build-metadata' | 'unchanged' | 'gradle-snapshot';
 
 /**
  * Strategy interface for build-system specific operations.

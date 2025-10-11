@@ -1,7 +1,9 @@
 import * as core from '@actions/core';
 import { 
-  ModuleChange,
+  ProcessingModuleChange,
+  ProcessedModuleChange,
   BumpType,
+  ChangeReason,
   CommitInfo,
   ModuleSystemFactory
 } from './adapters/core.js';
@@ -141,100 +143,112 @@ export class MonorepoVersionRunner {
       core.info(`🕐 Generated timestamp prerelease ID: ${effectivePrereleaseId}`);
     }
 
-    // Calculate version bumps for each module
-    core.info('🔢 Calculating version bumps...');
-    const moduleChanges: ModuleChange[] = [];
+    // Calculate bump types for ALL modules (changed and unchanged)
+    core.info('🔢 Calculating bump types from commits...');
+    let processingModuleChanges: ProcessingModuleChange[] = [];
     
     for (const [projectId, projectInfo] of this.hierarchyManager.getModules()) {
       const commits = moduleCommits.get(projectId) || [];
-      const currentVersion = projectInfo.version; // Get version directly from ProjectInfo
       
-      // Determine bump type from commits
+      // Determine bump type from commits only
       const bumpType = calculateBumpFromCommits(commits, this.config);
       
-      // Handle version bumping based on mode
-      let shouldBump = bumpType !== 'none';
+      // Determine processing requirements and reason
       let actualBumpType = bumpType;
-      let reason: 'commits' | 'prerelease-unchanged' | 'build-metadata' = 'commits';
+      let reason: 'commits' | 'prerelease-unchanged' | 'build-metadata' | 'unchanged' = 'unchanged';
+      let needsProcessing = false;
       
-      // In prerelease mode with bumpUnchanged, also bump modules with no changes
-      if (this.options.prereleaseMode && this.options.bumpUnchanged && bumpType === 'none') {
-        shouldBump = true;
-        actualBumpType = 'none'; // Will be handled by bumpToPrerelease
+      if (bumpType !== 'none') {
+        // Module has commits that require version changes
+        needsProcessing = true;
+        reason = 'commits';
+      } else if (this.options.prereleaseMode && this.options.bumpUnchanged) {
+        // Prerelease mode with bumpUnchanged - include modules with no changes
+        needsProcessing = true;
         reason = 'prerelease-unchanged';
-      }
-      
-      // When build metadata is enabled, all modules should be updated
-      if (this.options.addBuildMetadata && bumpType === 'none' && !shouldBump) {
-        shouldBump = true;
-        actualBumpType = 'none';
+      } else if (this.options.addBuildMetadata) {
+        // Build metadata mode - all modules need updates for metadata
+        needsProcessing = true;
         reason = 'build-metadata';
       }
       
-      if (shouldBump) {
-        let newVersion: SemVer = currentVersion;
-        
-        // Handle different versioning scenarios
-        if (actualBumpType !== 'none' && this.options.prereleaseMode) {
+      // Create module change for ALL modules - processing flag determines behavior
+      processingModuleChanges.push({
+        module: projectInfo,
+        fromVersion: projectInfo.version,
+        toVersion: '', // Will be calculated later
+        bumpType: actualBumpType,
+        reason: reason,
+        needsProcessing: needsProcessing,
+      });
+    }
+
+    // Calculate cascade effects
+    core.info('🌊 Calculating cascade effects...');
+    processingModuleChanges = calculateCascadeEffects(
+      this.hierarchyManager,
+      processingModuleChanges,
+      (dependencyBump: BumpType) => getDependencyBumpType(dependencyBump, this.config)
+    );
+    
+    // Apply version calculations and collect modules that need updates
+    core.info('🔢 Calculating actual versions...');
+    const processedModuleChanges: ProcessedModuleChange[] = [];
+    
+    for (const change of processingModuleChanges) {
+      let newVersion: SemVer = change.fromVersion;
+      
+      // Only apply version changes if module needs processing
+      if (change.needsProcessing) {
+        // Apply version bumps based on module state
+        if (change.bumpType !== 'none' && this.options.prereleaseMode) {
           // Scenario 1: Commits with changes in prerelease mode
-          newVersion = bumpToPrerelease(currentVersion, actualBumpType, effectivePrereleaseId);
-        } else if (actualBumpType !== 'none' && !this.options.prereleaseMode) {
+          newVersion = bumpToPrerelease(change.fromVersion, change.bumpType, effectivePrereleaseId);
+        } else if (change.bumpType !== 'none' && !this.options.prereleaseMode) {
           // Scenario 2: Commits with changes in normal mode
-          newVersion = bumpSemVer(currentVersion, actualBumpType);
-        } else if (reason === 'prerelease-unchanged') {
+          newVersion = bumpSemVer(change.fromVersion, change.bumpType);
+        } else if (change.reason === 'prerelease-unchanged') {
           // Scenario 3: No changes but force prerelease bump (bumpUnchanged enabled)
-          // Implied: actualBumpType === 'none' (from cascade)
-          newVersion = bumpToPrerelease(currentVersion, 'none', effectivePrereleaseId);
+          newVersion = bumpToPrerelease(change.fromVersion, 'none', effectivePrereleaseId);
         }
-        // Scenario 4: reason === 'build-metadata' - no version bump, keep currentVersion
+        // Scenario 4: reason === 'build-metadata' or 'unchanged' - no version bump, keep fromVersion
         
         // Add build metadata if enabled (applies to all scenarios)
         if (this.options.addBuildMetadata && shortSha) {
           newVersion = addBuildMetadata(newVersion, shortSha);
         }
+      }
+      
+      // Convert to string version
+      change.toVersion = formatSemVer(newVersion);
+      
+      // Apply Gradle snapshot suffix if enabled (to all modules in gradle mode)
+      if (this.options.gradleSnapshot && this.options.adapter === 'gradle') {
+        const originalVersion = change.toVersion;
+        change.toVersion = applyGradleSnapshot(change.toVersion);
         
-        moduleChanges.push({
-          module: projectInfo,
-          fromVersion: currentVersion,
-          toVersion: formatSemVer(newVersion),
-          bumpType: actualBumpType,
-          reason: reason,
-        });
+        // If snapshot suffix was actually added and module wasn't already being processed, mark it for processing
+        if (!change.needsProcessing && change.toVersion !== originalVersion) {
+          change.needsProcessing = true;
+          change.reason = 'gradle-snapshot';
+        }
+      }
+      
+      // Add to update collection only if module needs processing
+      if (change.needsProcessing) {
+        // Convert to ProcessedModuleChange since we know needsProcessing is true
+        const processedChange: ProcessedModuleChange = {
+          module: change.module,
+          fromVersion: change.fromVersion,
+          toVersion: change.toVersion,
+          bumpType: change.bumpType,
+          reason: change.reason as Exclude<ChangeReason, 'unchanged'>, // Safe cast since needsProcessing is true
+        };
+        processedModuleChanges.push(processedChange);
       }
     }
-
-    // Calculate cascade effects
-    core.info('🌊 Calculating cascade effects...');
-    const cascadeResult = calculateCascadeEffects(
-      this.hierarchyManager,
-      moduleChanges,
-      (dependencyBump: BumpType) => getDependencyBumpType(dependencyBump, this.config)
-    );
-
-    // Update cascade changes with actual version calculations
-    for (const change of cascadeResult.changes) {
-      if (change.reason === 'cascade') {
-        change.fromVersion = change.module.version; // Get version directly from ProjectInfo
-        
-        let newVersion;
-        if (this.options.prereleaseMode) {
-          newVersion = bumpToPrerelease(change.fromVersion, change.bumpType, effectivePrereleaseId);
-        } else {
-          newVersion = bumpSemVer(change.fromVersion, change.bumpType);
-        }
-        
-        // Add build metadata to cascade changes if enabled
-        if (this.options.addBuildMetadata && shortSha) {
-          newVersion = addBuildMetadata(newVersion, shortSha);
-        }
-        
-        change.toVersion = formatSemVer(newVersion);
-      }
-    }
-
-    const allChanges = cascadeResult.changes;
     
-    if (allChanges.length === 0) {
+    if (processedModuleChanges.length === 0) {
       core.info('✨ No version changes needed');
       return {
         bumped: false,
@@ -244,37 +258,8 @@ export class MonorepoVersionRunner {
       };
     }
 
-    // Apply Gradle snapshot suffix directly to toVersion if enabled
-    if (this.options.gradleSnapshot && this.options.adapter === 'gradle') {
-      // Update changed modules - apply snapshot transformation directly to toVersion
-      for (const change of allChanges) {
-        change.toVersion = applyGradleSnapshot(change.toVersion);
-      }
-
-      // Handle unchanged modules that also need -SNAPSHOT suffix
-      const changedModuleIds = new Set(allChanges.map(change => change.module.id));
-      for (const [moduleId, moduleInfo] of this.hierarchyManager.getModules()) {
-        if (!changedModuleIds.has(moduleId)) {
-          const currentVersion = moduleInfo.version;
-          const versionString = formatSemVer(currentVersion);
-          const snapshotVersion = applyGradleSnapshot(versionString);
-          
-          // Only add to changes if the version doesn't already have -SNAPSHOT
-          if (snapshotVersion !== versionString) {
-            allChanges.push({
-              module: moduleInfo,
-              fromVersion: currentVersion,
-              toVersion: snapshotVersion, // Apply snapshot directly to toVersion
-              bumpType: 'none',
-              reason: 'gradle-snapshot' as any,
-            });
-          }
-        }
-      }
-    }
-
-    core.info(`📈 Planning to update ${allChanges.length} modules:`);
-    for (const change of allChanges) {
+    core.info(`📈 Planning to update ${processedModuleChanges.length} modules:`);
+    for (const change of processedModuleChanges) {
       const from = formatSemVer(change.fromVersion);
       const to = change.toVersion;
       core.info(`  ${change.module.id}: ${from} → ${to} (${change.bumpType}, ${change.reason})`);
@@ -284,20 +269,20 @@ export class MonorepoVersionRunner {
       core.info('🏃‍♂️ Dry run mode - no changes will be written');
       return {
         bumped: true,
-        changedModules: allChanges.map(change => ({
+        changedModules: processedModuleChanges.map(change => ({
           id: change.module.id,
           from: formatSemVer(change.fromVersion),
           to: change.toVersion,
           bumpType: change.bumpType,
         })),
-        createdTags: allChanges.map(change => `${change.module.name}@${change.toVersion}`),
+        createdTags: processedModuleChanges.map(change => `${change.module.name}@${change.toVersion}`),
         changelogPaths: [],
       };
     }
 
     // Stage new versions in memory
     core.info('✍️ Staging new versions...');
-    for (const change of allChanges) {
+    for (const change of processedModuleChanges) {
       // Use toVersion directly (now includes all transformations like Gradle snapshots)
       this.versionManager.updateVersion(change.module.id, change.toVersion);
       core.info(`  Staged ${change.module.id} to ${change.toVersion}`);
@@ -306,18 +291,18 @@ export class MonorepoVersionRunner {
     // Commit all version updates to files
     core.info('💾 Committing version updates to files...');
     await this.versionManager.commit();
-    core.info(`  Committed ${allChanges.length} version updates`);
+    core.info(`  Committed ${processedModuleChanges.length} version updates`);
 
     // Generate changelogs
     core.info('📚 Generating changelogs...');
     const changelogPaths = await generateChangelogsForModules(
-      allChanges,
+      processedModuleChanges,
       async (module) => moduleCommits.get(module.id) || [],
       this.options.repoRoot
     );
 
     // Generate root changelog
-    const rootChangelogPath = await generateRootChangelog(allChanges, this.options.repoRoot);
+    const rootChangelogPath = await generateRootChangelog(processedModuleChanges, this.options.repoRoot);
     changelogPaths.push(rootChangelogPath);
 
     // Commit and push changes (if enabled)
@@ -332,9 +317,9 @@ export class MonorepoVersionRunner {
         
         if (hasChanges) {
           // Create commit message
-          const moduleNames = allChanges.map(change => change.module.name);
+          const moduleNames = processedModuleChanges.map(change => change.module.name);
           const commitMessage = moduleNames.length === 1 
-            ? `chore(release): ${moduleNames[0]} ${allChanges[0].toVersion}`
+            ? `chore(release): ${moduleNames[0]} ${processedModuleChanges[0].toVersion}`
             : `chore(release): update ${moduleNames.length} modules`;
           
           // Commit changes
@@ -359,7 +344,7 @@ export class MonorepoVersionRunner {
     const createdTags: string[] = [];
     if (this.options.pushTags && this.options.pushChanges) {
       core.info('🏷️ Creating tags...');
-      for (const change of allChanges) {
+      for (const change of processedModuleChanges) {
         const tagName = `${change.module.name}@${change.toVersion}`;
         const message = `Release ${change.module.name} v${change.toVersion}`;
         
@@ -379,7 +364,7 @@ export class MonorepoVersionRunner {
 
     return {
       bumped: true,
-      changedModules: allChanges.map(change => ({
+      changedModules: processedModuleChanges.map(change => ({
         id: change.module.id,
         from: formatSemVer(change.fromVersion),
         to: change.toVersion,

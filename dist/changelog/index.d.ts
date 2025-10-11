@@ -1,4 +1,4 @@
-import { ModuleChange, CommitInfo } from '../adapters/core.js';
+import { CommitInfo, ProcessedModuleChange } from '../adapters/core.js';
 import { ProjectInfo } from '../adapters/hierarchy.js';
 export interface ChangelogEntry {
     module: ProjectInfo;
@@ -19,7 +19,7 @@ export interface ChangelogOptions {
 /**
  * Generate changelog for a module
  */
-export declare function generateChangelog(module: ProjectInfo, moduleChange: ModuleChange, commits: CommitInfo[], options?: ChangelogOptions): Promise<string>;
+export declare function generateChangelog(module: ProjectInfo, moduleChange: ProcessedModuleChange, commits: CommitInfo[], options?: ChangelogOptions): Promise<string>;
 /**
  * Update or create CHANGELOG.md file for a module
  */
@@ -27,9 +27,9 @@ export declare function updateChangelogFile(module: ProjectInfo, changelogConten
 /**
  * Generate changelog for multiple modules
  */
-export declare function generateChangelogsForModules(moduleChanges: ModuleChange[], getCommitsForModule: (module: ProjectInfo) => Promise<CommitInfo[]>, repoRoot: string, options?: ChangelogOptions): Promise<string[]>;
+export declare function generateChangelogsForModules(moduleChanges: ProcessedModuleChange[], getCommitsForModule: (module: ProjectInfo) => Promise<CommitInfo[]>, repoRoot: string, options?: ChangelogOptions): Promise<string[]>;
 /**
  * Generate a root changelog that summarizes all module changes
  */
-export declare function generateRootChangelog(moduleChanges: ModuleChange[], repoRoot: string): Promise<string>;
+export declare function generateRootChangelog(moduleChanges: ProcessedModuleChange[], repoRoot: string): Promise<string>;
 //# sourceMappingURL=index.d.ts.map

@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { ModuleChange, CommitInfo } from '../adapters/core.js';
+import { ProcessingModuleChange, CommitInfo, ProcessedModuleChange } from '../adapters/core.js';
 import { ProjectInfo } from '../adapters/hierarchy.js';
 import { formatSemVer } from '../semver/index.js';
 import { SemVer } from 'semver';
@@ -28,7 +28,7 @@ export interface ChangelogOptions {
  */
 export async function generateChangelog(
   module: ProjectInfo,
-  moduleChange: ModuleChange,
+  moduleChange: ProcessedModuleChange,
   commits: CommitInfo[],
   options: ChangelogOptions = {
     includeCommitHashes: false,
@@ -192,7 +192,7 @@ export async function updateChangelogFile(
  * Generate changelog for multiple modules
  */
 export async function generateChangelogsForModules(
-  moduleChanges: ModuleChange[],
+  moduleChanges: ProcessedModuleChange[],
   getCommitsForModule: (module: ProjectInfo) => Promise<CommitInfo[]>,
   repoRoot: string,
   options?: ChangelogOptions
@@ -224,7 +224,7 @@ export async function generateChangelogsForModules(
  * Generate a root changelog that summarizes all module changes
  */
 export async function generateRootChangelog(
-  moduleChanges: ModuleChange[],
+  moduleChanges: ProcessedModuleChange[],
   repoRoot: string
 ): Promise<string> {
   const rootChangelogPath = join(repoRoot, 'CHANGELOG.md');
