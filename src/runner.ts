@@ -155,7 +155,7 @@ export class MonorepoVersionRunner {
       
       // Determine processing requirements and reason
       let actualBumpType = bumpType;
-      let reason: 'commits' | 'prerelease-unchanged' | 'build-metadata' | 'unchanged' = 'unchanged';
+      let reason: ChangeReason | 'unchanged' = 'unchanged';
       let needsProcessing = false;
       
       if (bumpType !== 'none') {
@@ -242,7 +242,7 @@ export class MonorepoVersionRunner {
           fromVersion: change.fromVersion,
           toVersion: change.toVersion,
           bumpType: change.bumpType,
-          reason: change.reason as Exclude<ChangeReason, 'unchanged'>, // Safe cast since needsProcessing is true
+          reason: change.reason as ChangeReason, // Safe cast since needsProcessing is true
         };
         processedModuleChanges.push(processedChange);
       }

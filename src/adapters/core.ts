@@ -7,7 +7,7 @@ export interface ProcessingModuleChange {
   fromVersion: SemVer;
   toVersion: string;
   bumpType: BumpType;
-  reason: ChangeReason;
+  reason: ChangeReason | 'unchanged';
   needsProcessing: boolean;
 }
 
@@ -16,12 +16,12 @@ export interface ProcessedModuleChange {
   fromVersion: SemVer;
   toVersion: string;
   bumpType: BumpType;
-  reason: Exclude<ChangeReason, 'unchanged'>;
+  reason: ChangeReason;
 }
 
 export type BumpType = 'major' | 'minor' | 'patch' | 'none';
 
-export type ChangeReason = 'commits' | 'dependency' | 'cascade' | 'prerelease-unchanged' | 'build-metadata' | 'unchanged' | 'gradle-snapshot';
+export type ChangeReason = 'commits' | 'dependency' | 'cascade' | 'prerelease-unchanged' | 'build-metadata' | 'gradle-snapshot';
 
 /**
  * Strategy interface for build-system specific operations.
