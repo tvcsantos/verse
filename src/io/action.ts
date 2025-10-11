@@ -12,10 +12,29 @@ function parseCommaSeparated(input: string): string[] {
     .filter(item => item.length > 0);
 }
 
+const RUNNER_ACTIONS_PATH = '/home/runner/_work/_actions'
+
+function getGithubActionRepository(): string {
+  const repo = process.env.GITHUB_ACTION_REPOSITORY
+  if (!repo) throw new Error("GITHUB_ACTION_REPOSITORY environment variable is not set");
+  return repo;
+}
+
+function getGithubActionRef(): string {
+  return process.env.GITHUB_ACTION_REF || 'main'
+}
+
+const GITHUB_ACTION_REPOSITORY = getGithubActionRepository()
+const GITHUB_ACTION_REF = getGithubActionRef()
+
+const ACTION_FILE_PATH = join(
+  RUNNER_ACTIONS_PATH,
+  GITHUB_ACTION_REPOSITORY,
+  GITHUB_ACTION_REF
+)
+
 export function getGitHubActionPath(relativePath: string): string {
-  const basePath = process.env['GITHUB_ACTION_PATH'];
-  if (!basePath) throw new Error("GITHUB_ACTION_PATH environment variable is not set");
-  return join(basePath, relativePath);
+  return join(ACTION_FILE_PATH, relativePath);
 }
 
 /**
