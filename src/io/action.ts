@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import { VerseRunner, RunnerOptions } from '../runner.js';
+import { join } from 'path';
 
 /**
  * Parse comma-separated input values
@@ -9,6 +10,12 @@ function parseCommaSeparated(input: string): string[] {
     .split(',')
     .map(item => item.trim())
     .filter(item => item.length > 0);
+}
+
+export function getGitHubActionPath(relativePath: string): string {
+  const basePath = process.env['GITHUB_ACTION_PATH'];
+  if (!basePath) throw new Error("GITHUB_ACTION_PATH environment variable is not set");
+  return join(basePath, relativePath);
 }
 
 /**

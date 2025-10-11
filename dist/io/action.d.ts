@@ -1,3 +1,4 @@
+export declare function getGitHubActionPath(relativePath: string): string;
 /**
  * Main entry point for VERSE GitHub Action
  */

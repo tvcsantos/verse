@@ -12,14 +12,14 @@ import {
 import { getExecOutput } from '@actions/exec';
 import { parseSemVer } from '../../../semver/index.js';
 import { fileExists } from '../../../utils/file.js';
-import * as core from '@actions/core';
+import { getGitHubActionPath } from '../../../io/action.js';
 
 /**
  * Execute the gradle hierarchy command to get the JSON output
  */
 export async function executeGradleHierarchyCommand(projectRoot: string): Promise<string> {
   const gradlew = join(projectRoot, 'gradlew');
-  const initScriptPath = join(projectRoot, 'init-hierarchy-deps.gradle.kts');
+  const initScriptPath = getGitHubActionPath('init-hierarchy-deps.gradle.kts');
   
   // Check if init script exists
   const scriptExists = await fileExists(initScriptPath);

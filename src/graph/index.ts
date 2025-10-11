@@ -1,7 +1,6 @@
 import { ProcessingModuleChange, BumpType } from '../adapters/core.js';
-import { ProjectInfo } from '../adapters/hierarchy.js';
 import { HierarchyModuleManager } from '../adapters/hierarchy/hierarchyModuleManager.js';
-import { maxBumpType, createInitialVersion } from '../semver/index.js';
+import { maxBumpType } from '../semver/index.js';
 
 /**
  * Calculate cascade effects when modules change.

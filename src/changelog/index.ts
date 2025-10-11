@@ -1,9 +1,8 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { ProcessingModuleChange, CommitInfo, ProcessedModuleChange } from '../adapters/core.js';
+import { CommitInfo, ProcessedModuleChange } from '../adapters/core.js';
 import { ProjectInfo } from '../adapters/hierarchy.js';
 import { formatSemVer } from '../semver/index.js';
-import { SemVer } from 'semver';
 
 export type ChangelogEntry = {
   readonly module: ProjectInfo;
