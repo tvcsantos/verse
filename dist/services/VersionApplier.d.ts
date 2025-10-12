@@ -21,4 +21,4 @@ export declare class VersionApplier {
     private stageVersions;
     private commitVersions;
 }
-//# sourceMappingURL=VersionApplier.d.ts.map
+//# sourceMappingURL=versionApplier.d.ts.map

@@ -1,4 +1,4 @@
-import { ModuleChangeResult } from './services/VersionApplier.js';
+import { ModuleChangeResult } from './services/versionApplier.js';
 export type RunnerOptions = {
     readonly repoRoot: string;
     readonly adapter: string;

@@ -5,4 +5,4 @@ export declare class CommitAnalyzer {
     constructor(repoRoot: string);
     analyzeCommitsSinceLastRelease(hierarchyManager: HierarchyModuleManager): Promise<Map<string, CommitInfo[]>>;
 }
-//# sourceMappingURL=CommitAnalyzer.d.ts.map
+//# sourceMappingURL=commitAnalyzer.d.ts.map

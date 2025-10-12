@@ -7,8 +7,6 @@ export type VersionApplierOptions = {
   dryRun: boolean;
 };
 
-// We'll just return ModuleChangeResult[] directly
-
 export type ModuleChangeResult = {
   readonly id: string;
   readonly name: string;

@@ -1,5 +1,5 @@
 import { CommitInfo } from '../adapters/core.js';
-import { ModuleChangeResult } from '../services/VersionApplier.js';
+import { ModuleChangeResult } from '../services/versionApplier.js';
 export type ChangelogEntry = {
     readonly moduleResult: ModuleChangeResult;
     readonly version: string;

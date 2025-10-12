@@ -10,12 +10,12 @@ import {
 } from './git/index.js';
 
 // Service imports
-import { ConfigurationLoader } from './services/ConfigurationLoader.js';
-import { CommitAnalyzer } from './services/CommitAnalyzer.js';
-import { VersionBumper, VersionBumperOptions } from './services/VersionBumper.js';
-import { VersionApplier, VersionApplierOptions, ModuleChangeResult } from './services/VersionApplier.js';
-import { ChangelogGenerator } from './services/ChangelogGenerator.js';
-import { GitOperations, GitOperationsOptions } from './services/GitOperations.js';
+import { ConfigurationLoader } from './services/configurationLoader.js';
+import { CommitAnalyzer } from './services/commitAnalyzer.js';
+import { VersionBumper, VersionBumperOptions } from './services/versionBumper.js';
+import { VersionApplier, VersionApplierOptions, ModuleChangeResult } from './services/versionApplier.js';
+import { ChangelogGenerator } from './services/changelogGenerator.js';
+import { GitOperations, GitOperationsOptions } from './services/gitOperations.js';
 
 export type RunnerOptions = {
   readonly repoRoot: string;

@@ -1,4 +1,4 @@
-import { ModuleChangeResult } from './VersionApplier.js';
+import { ModuleChangeResult } from './versionApplier.js';
 export type GitOperationsOptions = {
     pushChanges: boolean;
     pushTags: boolean;
@@ -12,4 +12,4 @@ export declare class GitOperations {
     createAndPushTags(moduleChangeResults: ModuleChangeResult[]): Promise<string[]>;
     private createCommitMessage;
 }
-//# sourceMappingURL=GitOperations.d.ts.map
+//# sourceMappingURL=gitOperations.d.ts.map

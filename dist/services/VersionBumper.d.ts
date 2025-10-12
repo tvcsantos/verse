@@ -18,4 +18,4 @@ export declare class VersionBumper {
     private calculateInitialBumps;
     private applyVersionCalculations;
 }
-//# sourceMappingURL=VersionBumper.d.ts.map
+//# sourceMappingURL=versionBumper.d.ts.map

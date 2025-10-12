@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { ModuleChangeResult } from './VersionApplier.js';
+import { ModuleChangeResult } from './versionApplier.js';
 import { 
   addChangedFiles,
   commitChanges,

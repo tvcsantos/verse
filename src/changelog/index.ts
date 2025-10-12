@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { CommitInfo } from '../adapters/core.js';
-import { ModuleChangeResult } from '../services/VersionApplier.js';
+import { ModuleChangeResult } from '../services/versionApplier.js';
 
 export type ChangelogEntry = {
   readonly moduleResult: ModuleChangeResult;
