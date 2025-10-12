@@ -1,4 +1,3 @@
-import { AdapterIdentifier } from './identifier.js';
 import { ComposedAdapterIdentifier } from './composedAdapterIdentifier.js';
 import { RunnerOptions } from '../runner.js';
 /**
@@ -12,19 +11,6 @@ export declare class AdapterIdentifierFactory {
      * @returns ComposedAdapterIdentifier configured with all supported adapters
      */
     static createComposedIdentifier(): ComposedAdapterIdentifier;
-    /**
-     * Gets all available adapter identifiers.
-     *
-     * @returns Array of all available adapter identifiers
-     */
-    static getAllIdentifiers(): AdapterIdentifier[];
-    /**
-     * Creates a specific adapter identifier by name.
-     *
-     * @param adapterName - The name of the adapter to create an identifier for
-     * @returns The specific adapter identifier, or null if not found
-     */
-    static createSpecificIdentifier(adapterName: string): AdapterIdentifier | null;
     /**
      * Gets all supported adapter names.
      *

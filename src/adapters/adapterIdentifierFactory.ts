@@ -27,41 +27,6 @@ export class AdapterIdentifierFactory {
     }
 
     /**
-     * Gets all available adapter identifiers.
-     * 
-     * @returns Array of all available adapter identifiers
-     */
-    static getAllIdentifiers(): AdapterIdentifier[] {
-        return [
-            new GradleAdapterIdentifier(),
-            // Add future adapter identifiers here:
-            // new MavenAdapterIdentifier(),
-            // new NodeJSAdapterIdentifier(),
-            // new PythonAdapterIdentifier(),
-        ];
-    }
-
-    /**
-     * Creates a specific adapter identifier by name.
-     * 
-     * @param adapterName - The name of the adapter to create an identifier for
-     * @returns The specific adapter identifier, or null if not found
-     */
-    static createSpecificIdentifier(adapterName: string): AdapterIdentifier | null {
-        switch (adapterName.toLowerCase()) {
-            case 'gradle':
-                return new GradleAdapterIdentifier();
-            // Add future cases here:
-            // case 'maven':
-            //   return new MavenAdapterIdentifier();
-            // case 'nodejs':
-            //   return new NodeJSAdapterIdentifier();
-            default:
-                return null;
-        }
-    }
-
-    /**
      * Gets all supported adapter names.
      * 
      * @returns Array of supported adapter names
@@ -79,7 +44,7 @@ export class AdapterIdentifierFactory {
 
 export async function getAdapter(options: RunnerOptions): Promise<string> {
     let adapter: string;
-    
+
     if (options.adapter) {
         // Validate the provided adapter is supported
         const supportedAdapters = AdapterIdentifierFactory.getSupportedAdapters();
