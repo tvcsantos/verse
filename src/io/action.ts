@@ -70,7 +70,7 @@ export async function run(): Promise<void> {
     core.info('');
     core.info('🚀 Starting VERSE engine...');
     core.info(`Repository: ${repoRoot}`);
-    core.info(`Adapter: ${adapter || ' (auto-detect)'}`);
+    core.info(`Adapter: ${adapter || '(auto-detect)'}`);
     core.info(`Config: ${configPath}`);
     core.info(`Dry run: ${dryRun}`);
     core.info(`Prerelease mode: ${prereleaseMode}`);
