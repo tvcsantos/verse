@@ -7,30 +7,35 @@ import { ProjectHierarchy } from '../src/adapters/hierarchy.js';
 describe('Hierarchy Dependencies Parser', () => {
   const sampleHierarchy: ProjectHierarchy = {
     ":": {
+      name: "root",
       path: ".",
       affectedSubprojects: [":base", ":spring", ":spring:core", ":spring:servlet"],
       version: "1.0.0",
       type: "root"
     },
     ":base": {
+      name: "base",
       path: "base",
       affectedSubprojects: [],
       version: "1.1.0",
       type: "module"
     },
     ":spring": {
+      name: "spring",
       path: "spring",
       affectedSubprojects: [":spring:core", ":spring:servlet"],
       version: "2.0.0",
       type: "module"
     },
     ":spring:core": {
+      name: "core",
       path: "spring/core",
       affectedSubprojects: [],
       version: "2.1.0",
       type: "module"
     },
     ":spring:servlet": {
+      name: "servlet",
       path: "spring/servlet",
       affectedSubprojects: [],
       version: "2.2.0",
@@ -104,12 +109,14 @@ describe('Hierarchy Dependencies Parser', () => {
     it('should throw error when no root project is found', () => {
       const hierarchyWithoutRoot: ProjectHierarchy = {
         ":base": {
+          name: "base",
           path: "base",
           affectedSubprojects: [],
           version: "1.1.0",
           type: "module"
         },
         ":spring": {
+          name: "spring",
           path: "spring",
           affectedSubprojects: [],
           version: "2.0.0",

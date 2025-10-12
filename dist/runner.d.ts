@@ -1,4 +1,4 @@
-import { BumpType } from './adapters/core.js';
+import { ModuleChangeResult } from './services/VersionApplier.js';
 export type RunnerOptions = {
     readonly repoRoot: string;
     readonly adapter: string;
@@ -16,12 +16,6 @@ export type RunnerOptions = {
     readonly gradleSnapshot: boolean;
     readonly pushChanges: boolean;
 };
-export type ModuleChangeResult = {
-    readonly id: string;
-    readonly from: string;
-    readonly to: string;
-    readonly bumpType: BumpType;
-};
 export type RunnerResult = {
     readonly bumped: boolean;
     readonly changedModules: Array<ModuleChangeResult>;
@@ -35,6 +29,12 @@ export declare class VerseRunner {
     private versionManager;
     private config;
     private options;
+    private configurationLoader;
+    private commitAnalyzer;
+    private versionBumper;
+    private versionApplier;
+    private changelogGenerator;
+    private gitOperations;
     constructor(options: RunnerOptions);
     run(): Promise<RunnerResult>;
 }

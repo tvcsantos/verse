@@ -1,11 +1,10 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { CommitInfo, ProcessedModuleChange } from '../adapters/core.js';
-import { ProjectInfo } from '../adapters/hierarchy.js';
-import { formatSemVer } from '../semver/index.js';
+import { CommitInfo } from '../adapters/core.js';
+import { ModuleChangeResult } from '../services/VersionApplier.js';
 
 export type ChangelogEntry = {
-  readonly module: ProjectInfo;
+  readonly moduleResult: ModuleChangeResult;
   readonly version: string;
   readonly date: string;
   readonly changes: {
@@ -26,8 +25,7 @@ export type ChangelogOptions = {
  * Generate changelog for a module
  */
 export async function generateChangelog(
-  module: ProjectInfo,
-  moduleChange: ProcessedModuleChange,
+  moduleResult: ModuleChangeResult,
   commits: CommitInfo[],
   options: ChangelogOptions = {
     includeCommitHashes: false,
@@ -36,8 +34,8 @@ export async function generateChangelog(
   }
 ): Promise<string> {
   const entry: ChangelogEntry = {
-    module,
-    version: moduleChange.toVersion,
+    moduleResult,
+    version: moduleResult.to,
     date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
     changes: {
       breaking: [],
@@ -135,11 +133,11 @@ function formatCommitLine(commit: CommitInfo, options: ChangelogOptions): string
  * Update or create CHANGELOG.md file for a module
  */
 export async function updateChangelogFile(
-  module: ProjectInfo,
+  moduleResult: ModuleChangeResult,
   changelogContent: string,
   repoRoot: string
 ): Promise<string> {
-  const changelogPath = join(repoRoot, module.path, 'CHANGELOG.md');
+  const changelogPath = join(repoRoot, moduleResult.path, 'CHANGELOG.md');
 
   try {
     // Try to read existing changelog
@@ -176,7 +174,7 @@ export async function updateChangelogFile(
   } catch (error) {
     if (error instanceof Error && 'code' in error && (error as any).code === 'ENOENT') {
       // Create new changelog file
-      const moduleName = module.id === 'root' ? 'Root Module' : module.id;
+      const moduleName = moduleResult.id === 'root' ? 'Root Module' : moduleResult.id;
       const newContent = `# Changelog - ${moduleName}\n\n${changelogContent}`;
       await fs.writeFile(changelogPath, newContent, 'utf8');
     } else {
@@ -191,24 +189,23 @@ export async function updateChangelogFile(
  * Generate changelog for multiple modules
  */
 export async function generateChangelogsForModules(
-  moduleChanges: ProcessedModuleChange[],
-  getCommitsForModule: (module: ProjectInfo) => Promise<CommitInfo[]>,
+  moduleResults: ModuleChangeResult[],
+  getCommitsForModule: (moduleId: string) => Promise<CommitInfo[]>,
   repoRoot: string,
   options?: ChangelogOptions
 ): Promise<string[]> {
   const changelogPaths: string[] = [];
 
-  for (const moduleChange of moduleChanges) {
-    const commits = await getCommitsForModule(moduleChange.module);
+  for (const moduleResult of moduleResults) {
+    const commits = await getCommitsForModule(moduleResult.id);
     const changelogContent = await generateChangelog(
-      moduleChange.module,
-      moduleChange,
+      moduleResult,
       commits,
       options
     );
 
     const changelogPath = await updateChangelogFile(
-      moduleChange.module,
+      moduleResult,
       changelogContent,
       repoRoot
     );
@@ -223,7 +220,7 @@ export async function generateChangelogsForModules(
  * Generate a root changelog that summarizes all module changes
  */
 export async function generateRootChangelog(
-  moduleChanges: ProcessedModuleChange[],
+  moduleResults: ModuleChangeResult[],
   repoRoot: string
 ): Promise<string> {
   const rootChangelogPath = join(repoRoot, 'CHANGELOG.md');
@@ -231,15 +228,15 @@ export async function generateRootChangelog(
   
   let content = `## ${date}\n\n`;
   
-  if (moduleChanges.length === 0) {
+  if (moduleResults.length === 0) {
     content += 'No changes in this release.\n\n';
   } else {
     content += '### Module Updates\n\n';
     
-    for (const moduleChange of moduleChanges) {
-      const fromVersion = formatSemVer(moduleChange.fromVersion);
-      const toVersion = moduleChange.toVersion;
-      const moduleName = moduleChange.module.id === 'root' ? 'Root' : moduleChange.module.id;
+    for (const moduleResult of moduleResults) {
+      const fromVersion = moduleResult.from;
+      const toVersion = moduleResult.to;
+      const moduleName = moduleResult.id === 'root' ? 'Root' : moduleResult.id;
       
       content += `- **${moduleName}**: ${fromVersion} → ${toVersion}\n`;
     }

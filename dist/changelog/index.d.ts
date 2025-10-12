@@ -1,7 +1,7 @@
-import { CommitInfo, ProcessedModuleChange } from '../adapters/core.js';
-import { ProjectInfo } from '../adapters/hierarchy.js';
+import { CommitInfo } from '../adapters/core.js';
+import { ModuleChangeResult } from '../services/VersionApplier.js';
 export type ChangelogEntry = {
-    readonly module: ProjectInfo;
+    readonly moduleResult: ModuleChangeResult;
     readonly version: string;
     readonly date: string;
     readonly changes: {
@@ -19,17 +19,17 @@ export type ChangelogOptions = {
 /**
  * Generate changelog for a module
  */
-export declare function generateChangelog(module: ProjectInfo, moduleChange: ProcessedModuleChange, commits: CommitInfo[], options?: ChangelogOptions): Promise<string>;
+export declare function generateChangelog(moduleResult: ModuleChangeResult, commits: CommitInfo[], options?: ChangelogOptions): Promise<string>;
 /**
  * Update or create CHANGELOG.md file for a module
  */
-export declare function updateChangelogFile(module: ProjectInfo, changelogContent: string, repoRoot: string): Promise<string>;
+export declare function updateChangelogFile(moduleResult: ModuleChangeResult, changelogContent: string, repoRoot: string): Promise<string>;
 /**
  * Generate changelog for multiple modules
  */
-export declare function generateChangelogsForModules(moduleChanges: ProcessedModuleChange[], getCommitsForModule: (module: ProjectInfo) => Promise<CommitInfo[]>, repoRoot: string, options?: ChangelogOptions): Promise<string[]>;
+export declare function generateChangelogsForModules(moduleResults: ModuleChangeResult[], getCommitsForModule: (moduleId: string) => Promise<CommitInfo[]>, repoRoot: string, options?: ChangelogOptions): Promise<string[]>;
 /**
  * Generate a root changelog that summarizes all module changes
  */
-export declare function generateRootChangelog(moduleChanges: ProcessedModuleChange[], repoRoot: string): Promise<string>;
+export declare function generateRootChangelog(moduleResults: ModuleChangeResult[], repoRoot: string): Promise<string>;
 //# sourceMappingURL=index.d.ts.map
