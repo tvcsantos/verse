@@ -7,9 +7,9 @@ inputs:
     required: false
     default: 'false'
   adapter:
-    description: 'Language adapter (e.g., gradle)'
+    description: 'Language adapter (e.g., gradle). Auto-detected if not provided'
     required: false
-    default: 'gradle'
+    default: ''
   config-path:
     description: 'Optional path to specific config file (auto-discovery used if not provided)'
     required: false

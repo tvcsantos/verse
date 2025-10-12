@@ -4,6 +4,7 @@ import { HierarchyModuleManager } from './adapters/hierarchy/hierarchyModuleMana
 import { VersionManager } from './adapters/versionManager.js';
 import { createModuleSystemFactory } from './factories/moduleSystemFactory.js';
 import { Config } from './config/index.js';
+import { AdapterIdentifierFactory, getAdapter } from './adapters/adapterIdentifierFactory.js';
 import { 
   getCurrentBranch,
   isWorkingDirectoryClean
@@ -19,7 +20,7 @@ import { GitOperations, GitOperationsOptions } from './services/gitOperations.js
 
 export type RunnerOptions = {
   readonly repoRoot: string;
-  readonly adapter: string;
+  readonly adapter?: string;
   readonly configPath?: string;
   readonly dryRun: boolean;
   readonly createReleases: boolean;
@@ -41,10 +42,11 @@ export type RunnerResult = {
 };
 
 export class VerseRunner {
-  private moduleSystemFactory: ModuleSystemFactory;
+  private moduleSystemFactory!: ModuleSystemFactory; // Will be initialized in run()
   private hierarchyManager!: HierarchyModuleManager; // Will be initialized in run()
   private versionManager!: VersionManager; // Will be initialized in run()
   private config!: Config; // Will be initialized in run()
+  private adapter!: string; // Will be initialized in run()
   private options: RunnerOptions;
 
   // Service instances
@@ -57,7 +59,6 @@ export class VerseRunner {
 
   constructor(options: RunnerOptions) {
     this.options = options;
-    this.moduleSystemFactory = createModuleSystemFactory(options.adapter, options.repoRoot);
     
     // Initialize services
     this.configurationLoader = new ConfigurationLoader();
@@ -70,6 +71,11 @@ export class VerseRunner {
 
   async run(): Promise<RunnerResult> {
     core.info('🏃 Running VERSE semantic evolution pipeline...');
+
+    this.adapter = await getAdapter(this.options);
+    
+    // Initialize module system factory with resolved adapter
+    this.moduleSystemFactory = createModuleSystemFactory(this.adapter, this.options.repoRoot);
     
     // Load configuration
     this.config = await this.configurationLoader.loadConfiguration(
@@ -118,7 +124,7 @@ export class VerseRunner {
       bumpUnchanged: this.options.bumpUnchanged,
       addBuildMetadata: this.options.addBuildMetadata,
       gradleSnapshot: this.options.gradleSnapshot,
-      adapter: this.options.adapter,
+      adapter: this.adapter,
       timestampVersions: this.options.timestampVersions,
       prereleaseId: this.options.prereleaseId,
       repoRoot: this.options.repoRoot

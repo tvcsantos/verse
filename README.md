@@ -38,9 +38,9 @@ jobs:
         id: versioner
         uses: your-org/verse@v1
         with:
-          adapter: gradle
           create-releases: true
           dry-run: false
+          # adapter: gradle  # Optional - VERSE will auto-detect your project type
       - name: Print results
         run: |
           echo "Bumped: ${{ steps.versioner.outputs.bumped }}"
@@ -48,6 +48,25 @@ jobs:
 ```
 
 > **📝 Branch Configuration**: VERSE only runs on release branches (default: `main`, `master`). On other branches, it will skip versioning. You can configure which branches are considered release branches in your [configuration file](#configuration) using the `releaseBranches` option.
+
+### Adapter Auto-Detection
+
+VERSE automatically detects your project type based on the files present in your repository. You don't need to specify the `adapter` input in most cases:
+
+- **Gradle Projects**: Detected by presence of `build.gradle`, `build.gradle.kts`, `settings.gradle`, or `settings.gradle.kts`
+- **Future Adapters**: More project types will be supported in future releases
+
+If auto-detection fails, VERSE will throw an error asking you to explicitly specify the `adapter` input:
+
+```yaml
+- name: VERSE Semantic Evolution
+  uses: your-org/verse@v1
+  with:
+    adapter: gradle  # Required if auto-detection fails
+    create-releases: true
+```
+
+**Supported Adapters**: `gradle`
 
 ### Pre-release Versions
 
@@ -139,7 +158,7 @@ This applies `-SNAPSHOT` suffix to **all** module versions, generating versions 
 | Input | Description | Default |
 |-------|-------------|---------|
 | `dry-run` | Run without making changes | `false` |
-| `adapter` | Language adapter to use | `gradle` |
+| `adapter` | Language adapter to use (auto-detected if not provided) | `auto-detect` |
 | `config-path` | Optional path to specific config file (auto-discovery used if not provided) | `` |
 | `create-releases` | Create GitHub Releases | `false` |
 | `push-tags` | Push tags to remote | `true` |

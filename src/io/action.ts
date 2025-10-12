@@ -49,9 +49,12 @@ function parseBooleanInput(input: string): boolean {
  */
 export async function run(): Promise<void> {
   try {
+    // Get repository root (GitHub Actions sets GITHUB_WORKSPACE)
+    const repoRoot = process.env.GITHUB_WORKSPACE || process.cwd();
+    
     // Get inputs
     const dryRun = parseBooleanInput(core.getInput('dry-run'));
-    const adapter = core.getInput('adapter') || 'gradle';
+    const adapter = core.getInput('adapter') || undefined;
     const configPath = core.getInput('config-path') || undefined;
     const createReleases = parseBooleanInput(core.getInput('create-releases'));
     const pushTags = parseBooleanInput(core.getInput('push-tags'));
@@ -62,9 +65,6 @@ export async function run(): Promise<void> {
     const timestampVersions = parseBooleanInput(core.getInput('timestamp-versions'));
     const gradleSnapshot = parseBooleanInput(core.getInput('gradle-snapshot'));
     const pushChanges = parseBooleanInput(core.getInput('push-changes'));
-
-    // Get repository root (GitHub Actions sets GITHUB_WORKSPACE)
-    const repoRoot = process.env.GITHUB_WORKSPACE || process.cwd();
 
     // Print cool ASCII art
     core.info('');
@@ -80,7 +80,7 @@ export async function run(): Promise<void> {
     core.info('');
     core.info('🚀 Starting VERSE engine...');
     core.info(`Repository: ${repoRoot}`);
-    core.info(`Adapter: ${adapter}`);
+    core.info(`Adapter: ${adapter || ' (auto-detect)'}`);
     core.info(`Config: ${configPath}`);
     core.info(`Dry run: ${dryRun}`);
     core.info(`Prerelease mode: ${prereleaseMode}`);

@@ -1,7 +1,7 @@
 import { ModuleChangeResult } from './services/versionApplier.js';
 export type RunnerOptions = {
     readonly repoRoot: string;
-    readonly adapter: string;
+    readonly adapter?: string;
     readonly configPath?: string;
     readonly dryRun: boolean;
     readonly createReleases: boolean;
@@ -25,6 +25,7 @@ export declare class VerseRunner {
     private hierarchyManager;
     private versionManager;
     private config;
+    private adapter;
     private options;
     private configurationLoader;
     private commitAnalyzer;
