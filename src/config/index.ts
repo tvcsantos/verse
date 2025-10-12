@@ -1,6 +1,8 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import * as core from '@actions/core';
+import { cosmiconfig } from 'cosmiconfig';
+import deepmerge from 'deepmerge';
 import { BumpType } from '../adapters/core.js';
 import { fileExists } from '../utils/file.js';
 
@@ -54,45 +56,53 @@ const DEFAULT_CONFIG: Config = {
 /**
  * Load configuration from file or return default
  */
-export async function loadConfig(configPath: string, repoRoot: string): Promise<Config> {
-  const fullPath = join(repoRoot, configPath);
-  
-  // Check if file exists first
-  if (!(await fileExists(fullPath))) {
-    core.info(`No config file found at ${configPath}, using defaults`);
-    return DEFAULT_CONFIG;
-  }
-  
+export async function loadConfig(configPath?: string, repoRoot?: string): Promise<Config> {
+  const explorer = cosmiconfig('verse');
+
   try {
-    const configContent = await fs.readFile(fullPath, 'utf8');
-    const userConfig = JSON.parse(configContent);
+    let result;
     
-    return mergeConfig(DEFAULT_CONFIG, userConfig);
+    if (configPath && repoRoot) {
+      // If specific config path provided, try to load it
+      const fullPath = join(repoRoot, configPath);
+      if (await fileExists(fullPath)) {
+        result = await explorer.load(fullPath);
+      } else {
+        core.info(`Specified config file not found at ${configPath}, searching for config files...`);
+        result = await explorer.search(repoRoot);
+      }
+    } else {
+      // Search for config in standard locations
+      const searchStart = repoRoot || process.cwd();
+      result = await explorer.search(searchStart);
+    }
+    
+    if (result?.config) {
+      const configSource = result.filepath ? `from ${result.filepath}` : 'from package.json';
+      core.info(`📋 Configuration loaded ${configSource}`);
+      
+      const userConfig = result.config;
+      const validatedConfig = mergeConfig(DEFAULT_CONFIG, userConfig);
+      validateConfig(validatedConfig);
+      
+      return validatedConfig;
+    } else {
+      core.info(`No configuration found, using defaults`);
+      return DEFAULT_CONFIG;
+    }
   } catch (error) {
-    throw new Error(`Failed to load config from ${configPath}: ${error}`);
+    throw new Error(`Failed to load configuration: ${error}`);
   }
 }
 
 /**
- * Merge user config with default config
+ * Merge user config with default config using deepmerge
  */
 function mergeConfig(defaultConfig: Config, userConfig: Partial<Config>): Config {
-  return {
-    defaultBump: userConfig.defaultBump || defaultConfig.defaultBump,
-    commitTypes: {
-      ...defaultConfig.commitTypes,
-      ...userConfig.commitTypes,
-    },
-    dependencyRules: {
-      ...defaultConfig.dependencyRules,
-      ...userConfig.dependencyRules,
-    },
-    gradle: userConfig.gradle ? {
-      ...defaultConfig.gradle,
-      ...userConfig.gradle,
-    } : defaultConfig.gradle,
-    nodejs: userConfig.nodejs,
-  };
+  return deepmerge(defaultConfig, userConfig, {
+    // Custom merge for arrays - replace instead of concatenating
+    arrayMerge: (target, source) => source,
+  }) as Config;
 }
 
 /**

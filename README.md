@@ -139,7 +139,7 @@ This applies `-SNAPSHOT` suffix to **all** module versions, generating versions 
 | `release-branches` | Comma-separated release branches | `main,master` |
 | `dry-run` | Run without making changes | `false` |
 | `adapter` | Language adapter to use | `gradle` |
-| `config-path` | Path to config file | `.versioningrc.json` |
+| `config-path` | Optional path to specific config file (auto-discovery used if not provided) | `` |
 | `create-releases` | Create GitHub Releases | `false` |
 | `push-tags` | Push tags to remote | `true` |
 | `prerelease-mode` | Generate pre-release versions | `false` |
@@ -211,8 +211,22 @@ steps:
 
 ## Configuration
 
-Create `.versioningrc.json` in your repository root:
+VERSE uses [cosmiconfig](https://github.com/davidtheclark/cosmiconfig) for flexible configuration loading. It automatically searches for configuration in multiple formats and locations using standard naming conventions.
 
+### Supported Configuration Files
+
+VERSE will automatically search for configuration in the following order:
+
+1. `package.json` (in a `"verse"` property)
+2. `.verserc` (JSON or YAML)
+3. `.verserc.json`
+4. `.verserc.yaml` / `.verserc.yml`
+5. `.verserc.js` (JavaScript)
+6. `verse.config.js` (JavaScript)
+
+### Configuration Examples
+
+#### JSON Format (`.verserc.json`)
 ```json
 {
   "defaultBump": "patch",
@@ -228,15 +242,96 @@ Create `.versioningrc.json` in your repository root:
   "dependencyRules": {
     "onMajorOfDependency": "minor",
     "onMinorOfDependency": "patch",
-    "onPatchOfDependency": "noop"
+    "onPatchOfDependency": "none"
   },
   "gradle": {
-    "versionSource": ["version-catalog", "gradle.properties", "build.gradle.kts"],
-    "updateVersionCatalog": true,
-    "versionCatalogPath": "gradle/libs.versions.toml"
+    "versionSource": ["gradle.properties"]
   }
 }
 ```
+
+#### YAML Format (`.verserc.yaml`)
+```yaml
+defaultBump: patch
+
+commitTypes:
+  feat: minor
+  fix: patch
+  perf: patch
+  refactor: patch
+  docs: ignore
+  test: ignore
+  chore: ignore
+
+dependencyRules:
+  onMajorOfDependency: minor
+  onMinorOfDependency: patch
+  onPatchOfDependency: none
+
+gradle:
+  versionSource:
+    - gradle.properties
+```
+
+#### JavaScript Format (`verse.config.js`)
+```javascript
+module.exports = {
+  defaultBump: 'patch',
+  commitTypes: {
+    feat: 'minor',
+    fix: 'patch',
+    // Dynamic configuration based on environment
+    ...(process.env.NODE_ENV === 'production' ? {
+      docs: 'patch'
+    } : {
+      docs: 'ignore'
+    })
+  },
+  dependencyRules: {
+    onMajorOfDependency: 'minor',
+    onMinorOfDependency: 'patch',
+    onPatchOfDependency: 'none'
+  }
+};
+```
+
+#### Package.json Format
+```json
+{
+  "name": "my-project",
+  "verse": {
+    "defaultBump": "patch",
+    "commitTypes": {
+      "feat": "minor",
+      "fix": "patch"
+    }
+  }
+}
+```
+
+### Usage Examples
+
+#### Using Auto-Discovery (Recommended)
+```yaml
+- name: VERSE Semantic Evolution
+  uses: your-org/verse@v1
+  with:
+    adapter: gradle
+    # No config-path needed - VERSE will find your config automatically
+```
+
+#### Using Specific Config File
+```yaml
+- name: VERSE Semantic Evolution
+  uses: your-org/verse@v1
+  with:
+    adapter: gradle
+    config-path: 'custom/path/to/verse.config.js'
+```
+
+### Legacy Configuration
+
+If you specify a `config-path` in your GitHub Action, VERSE will try to load that specific file first. If not found, it will fall back to the automatic discovery described above.
 
 ## Gradle Project Structure
 

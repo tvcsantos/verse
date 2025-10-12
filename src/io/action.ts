@@ -55,7 +55,7 @@ export async function run(): Promise<void> {
     );
     const dryRun = parseBooleanInput(core.getInput('dry-run'));
     const adapter = core.getInput('adapter') || 'gradle';
-    const configPath = core.getInput('config-path') || '.versioningrc.json';
+    const configPath = core.getInput('config-path') || undefined;
     const createReleases = parseBooleanInput(core.getInput('create-releases'));
     const pushTags = parseBooleanInput(core.getInput('push-tags'));
     const prereleaseMode = parseBooleanInput(core.getInput('prerelease-mode'));
@@ -101,7 +101,7 @@ export async function run(): Promise<void> {
     const options: RunnerOptions = {
       repoRoot,
       adapter,
-      configPath,
+      ...(configPath && { configPath }),
       releaseBranches,
       dryRun,
       createReleases,

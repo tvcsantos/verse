@@ -21,7 +21,7 @@ export type NodeJSConfig = {
 /**
  * Load configuration from file or return default
  */
-export declare function loadConfig(configPath: string, repoRoot: string): Promise<Config>;
+export declare function loadConfig(configPath?: string, repoRoot?: string): Promise<Config>;
 /**
  * Get bump type for a commit based on configuration
  */

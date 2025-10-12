@@ -63,7 +63,7 @@ interface LanguageAdapter {
 | `release-branches` | Comma-separated list of release branches | `main,master` |
 | `dry-run` | Run without writing or pushing | `false` |
 | `adapter` | Language adapter (e.g., `gradle`) | `gradle` |
-| `config-path` | Path to config file | `.versioningrc.json` |
+| `config-path` | Optional path to specific config file (auto-discovery used if not provided) | `` |
 | `create-releases` | Create GitHub Releases | `false` |
 | `push-tags` | Push tags to origin | `true` |
 
@@ -79,7 +79,7 @@ interface LanguageAdapter {
 
 ---
 
-## Configuration Example (`.versioningrc.json`)
+## Configuration Example (`.verserc.json`)
 
 ```json
 {

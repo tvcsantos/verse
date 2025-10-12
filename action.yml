@@ -15,9 +15,9 @@ inputs:
     required: false
     default: 'gradle'
   config-path:
-    description: 'Path to config file'
+    description: 'Optional path to specific config file (auto-discovery used if not provided)'
     required: false
-    default: '.versioningrc.json'
+    default: ''
   create-releases:
     description: 'Create GitHub Releases'
     required: false
