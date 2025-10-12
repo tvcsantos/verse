@@ -20,7 +20,6 @@ export type RunnerResult = {
     readonly changedModules: Array<ModuleChangeResult>;
     readonly createdTags: string[];
     readonly changelogPaths: string[];
-    readonly manifestPath?: string;
 };
 export declare class VerseRunner {
     private moduleSystemFactory;

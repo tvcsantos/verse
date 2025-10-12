@@ -39,7 +39,6 @@ export type RunnerResult = {
   readonly changedModules: Array<ModuleChangeResult>;
   readonly createdTags: string[];
   readonly changelogPaths: string[];
-  readonly manifestPath?: string;
 };
 
 export class VerseRunner {
@@ -71,7 +70,7 @@ export class VerseRunner {
   }
 
   async run(): Promise<RunnerResult> {
-    core.info('🚀 Starting VERSE - Version Engine for Repo Semantic Evolution...');
+    core.info('🏃 Running VERSE semantic evolution pipeline...');
     
     // Load configuration
     this.config = await this.configurationLoader.loadConfiguration(
@@ -172,7 +171,7 @@ export class VerseRunner {
     // Create and push tags
     const createdTags = await this.gitOperations.createAndPushTags(changedModules);
 
-    core.info('✅ VERSE semantic evolution completed successfully!');
+    core.info('✅ VERSE semantic evolution pipeline completed successfully!');
 
     return {
       bumped: true,

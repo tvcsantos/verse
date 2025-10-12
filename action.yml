@@ -63,8 +63,6 @@ outputs:
     description: 'List of created tags'
   changelog-paths:
     description: 'Generated changelog files'
-  manifest-path:
-    description: 'Manifest with current versions'
 runs:
   using: 'node20'
   main: 'dist/index.js'

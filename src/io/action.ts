@@ -124,10 +124,6 @@ export async function run(): Promise<void> {
     core.setOutput('changed-modules', JSON.stringify(result.changedModules));
     core.setOutput('created-tags', result.createdTags.join(','));
     core.setOutput('changelog-paths', result.changelogPaths.join(','));
-    
-    if (result.manifestPath) {
-      core.setOutput('manifest-path', result.manifestPath);
-    }
 
     // Log results
     if (result.bumped) {
@@ -146,6 +142,10 @@ export async function run(): Promise<void> {
     } else {
       core.info('✨ No version changes needed');
     }
+
+    core.info('');
+    core.info('🎯 VERSE action completed successfully!');
+    core.info('   Your multiverse has evolved semantically ✨');
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
