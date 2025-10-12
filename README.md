@@ -36,7 +36,7 @@ jobs:
           fetch-depth: 0
       - name: VERSE Semantic Evolution
         id: versioner
-        uses: your-org/verse@v1
+        uses: tvcsantos/verse@v1
         with:
           create-releases: true
           dry-run: false
@@ -60,7 +60,7 @@ If auto-detection fails, VERSE will throw an error asking you to explicitly spec
 
 ```yaml
 - name: VERSE Semantic Evolution
-  uses: your-org/verse@v1
+  uses: tvcsantos/verse@v1
   with:
     adapter: gradle  # Required if auto-detection fails
     create-releases: true
@@ -86,7 +86,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Create pre-release versions
-        uses: your-org/verse@v1
+        uses: tvcsantos/verse@v1
         with:
           adapter: gradle
           prerelease-mode: true
@@ -113,7 +113,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Create timestamp versions
-        uses: your-org/verse@v1
+        uses: tvcsantos/verse@v1
         with:
           adapter: gradle
           prerelease-mode: true
@@ -145,7 +145,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Create Gradle SNAPSHOT versions
-        uses: your-org/verse@v1
+        uses: tvcsantos/verse@v1
         with:
           adapter: gradle
           gradle-snapshot: true
@@ -190,7 +190,7 @@ For workflows where you want to handle git operations manually:
 
 ```yaml
 - name: Version modules (no git operations)
-  uses: your-org/verse@v1
+  uses: tvcsantos/verse@v1
   with:
     adapter: gradle
     push-changes: false    # Disable automatic commit/push
@@ -227,7 +227,6 @@ steps:
 | `changed-modules` | JSON array of changed modules |
 | `created-tags` | Comma-separated list of created tags |
 | `changelog-paths` | Comma-separated changelog file paths |
-| `manifest-path` | Path to version manifest file |
 
 ## Configuration
 
@@ -351,7 +350,7 @@ module.exports = {
 #### Using Auto-Discovery (Recommended)
 ```yaml
 - name: VERSE Semantic Evolution
-  uses: your-org/verse@v1
+  uses: tvcsantos/verse@v1
   with:
     adapter: gradle
     # No config-path needed - VERSE will find your config automatically
@@ -360,7 +359,7 @@ module.exports = {
 #### Using Specific Config File
 ```yaml
 - name: VERSE Semantic Evolution
-  uses: your-org/verse@v1
+  uses: tvcsantos/verse@v1
   with:
     adapter: gradle
     config-path: 'custom/path/to/verse.config.js'
@@ -395,30 +394,14 @@ myproject/
     └── gradle.properties   # version=2.1.0
 ```
 
-### Version Catalog Support
+### Version Management
 
-The action has **first-class support for Gradle Version Catalogs**:
+VERSE manages module versions through **root** `gradle.properties` file:
 
-```toml
-# gradle/libs.versions.toml
-[versions]
-project = "1.0.0"
-core = "2.1.0"
-api = "1.5.0"
-
-[libraries]
-spring-boot = { group = "org.springframework.boot", name = "spring-boot-starter", version.ref = "spring" }
-junit = "org.junit.jupiter:junit-jupiter:5.9.2"
-
-[bundles]
-testing = ["junit", "mockito"]
-```
-
-**Features:**
-- ✅ **Version management**: Updates versions in `[versions]` section
-- ✅ **Dependency parsing**: Resolves `libs.mylib` references  
-- ✅ **Variable resolution**: Handles `version.ref` references
-- ✅ **Priority handling**: Version catalog takes precedence over other sources
+- **Each module** must have its version declared on **root** `gradle.properties`
+- **Root module** version is read from the root `gradle.properties` file
+- **Version updates** are applied directly to **root** `gradle.properties` file
+- **Project dependencies** are detected using a Gradle custom init script
 
 ## Commit Message Format
 
