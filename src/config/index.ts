@@ -10,6 +10,7 @@ export type Config = {
   readonly defaultBump: BumpType;
   readonly commitTypes: Record<string, BumpType | 'ignore'>;
   readonly dependencyRules: DependencyRules;
+  readonly releaseBranches: string[];
   readonly gradle?: GradleConfig;
   readonly nodejs?: NodeJSConfig;
 };
@@ -48,6 +49,7 @@ const DEFAULT_CONFIG: Config = {
     onMinorOfDependency: 'patch',
     onPatchOfDependency: 'none',
   },
+  releaseBranches: ['main', 'master'],
   gradle: {
     versionSource: ['gradle.properties'],
   },

@@ -21,7 +21,6 @@ export type RunnerOptions = {
   readonly repoRoot: string;
   readonly adapter: string;
   readonly configPath?: string;
-  readonly releaseBranches: string[];
   readonly dryRun: boolean;
   readonly createReleases: boolean;
   readonly pushTags: boolean;
@@ -80,8 +79,8 @@ export class VerseRunner {
 
     // Check if we're on a release branch
     const currentBranch = await getCurrentBranch({ cwd: this.options.repoRoot });
-    if (!this.options.releaseBranches.includes(currentBranch)) {
-      core.info(`⚠️  Not on a release branch (current: ${currentBranch}), skipping versioning`);
+    if (!this.config.releaseBranches.includes(currentBranch)) {
+      core.info(`⚠️  Not on a release branch (current: ${currentBranch}, release branches: ${this.config.releaseBranches.join(', ')}), skipping versioning`);
       return {
         bumped: false,
         changedModules: [],

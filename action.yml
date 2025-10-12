@@ -2,10 +2,6 @@ name: 'VERSE - Version Engine for Repo Semantic Evolution'
 description: 'Intelligent semantic version management engine for monorepo projects with dependency cascade evolution'
 author: 'Your Organization'
 inputs:
-  release-branches:
-    description: 'Comma-separated list of release branches'
-    required: false
-    default: 'main,master'
   dry-run:
     description: 'Run without writing or pushing'
     required: false

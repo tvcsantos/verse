@@ -3,7 +3,6 @@ export type RunnerOptions = {
     readonly repoRoot: string;
     readonly adapter: string;
     readonly configPath?: string;
-    readonly releaseBranches: string[];
     readonly dryRun: boolean;
     readonly createReleases: boolean;
     readonly pushTags: boolean;

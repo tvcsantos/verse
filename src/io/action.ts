@@ -50,9 +50,6 @@ function parseBooleanInput(input: string): boolean {
 export async function run(): Promise<void> {
   try {
     // Get inputs
-    const releaseBranches = parseCommaSeparated(
-      core.getInput('release-branches') || 'main,master'
-    );
     const dryRun = parseBooleanInput(core.getInput('dry-run'));
     const adapter = core.getInput('adapter') || 'gradle';
     const configPath = core.getInput('config-path') || undefined;
@@ -85,7 +82,6 @@ export async function run(): Promise<void> {
     core.info(`Repository: ${repoRoot}`);
     core.info(`Adapter: ${adapter}`);
     core.info(`Config: ${configPath}`);
-    core.info(`Release branches: ${releaseBranches.join(', ')}`);
     core.info(`Dry run: ${dryRun}`);
     core.info(`Prerelease mode: ${prereleaseMode}`);
     if (prereleaseMode) {
@@ -102,7 +98,6 @@ export async function run(): Promise<void> {
       repoRoot,
       adapter,
       configPath,
-      releaseBranches,
       dryRun,
       createReleases,
       pushTags,
