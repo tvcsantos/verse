@@ -14,7 +14,7 @@ export class GradleModuleDetector implements ModuleDetector {
     const hierarchyJson = await executeGradleHierarchyCommand(this.repoRoot);
     const hierarchy: ProjectHierarchy = JSON.parse(hierarchyJson);
     
-    const hierarchyResult = parseHierarchyStructure(hierarchy, this.repoRoot);
+    const hierarchyResult = parseHierarchyStructure(hierarchy);
     return new HierarchyModuleManager(hierarchyResult);
   }
 }

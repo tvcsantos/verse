@@ -45,7 +45,7 @@ describe('Hierarchy Dependencies Parser', () => {
 
   describe('parseHierarchyStructure', () => {
     it('should parse hierarchy structure correctly', () => {
-      const result = parseHierarchyStructure(sampleHierarchy, '/test-repo');
+      const result = parseHierarchyStructure(sampleHierarchy);
       
       expect(result.projectIds).toHaveLength(5);
       expect(result.projectIds).toContain(':');
@@ -62,7 +62,7 @@ describe('Hierarchy Dependencies Parser', () => {
     });
 
     it('should build affected project relationships correctly', () => {
-      const result = parseHierarchyStructure(sampleHierarchy, '/test-repo');
+      const result = parseHierarchyStructure(sampleHierarchy);
       
       // Verify that affected projects are properly stored in the projectMap
       // Root affects all subprojects
@@ -82,7 +82,7 @@ describe('Hierarchy Dependencies Parser', () => {
     });
 
     it('should parse versions correctly from ProjectNode', () => {
-      const result = parseHierarchyStructure(sampleHierarchy, '/test-repo');
+      const result = parseHierarchyStructure(sampleHierarchy);
       
       // Verify that versions are correctly parsed from the hierarchy
       expect(result.projectMap.get(':')?.version.version).toBe('1.0.0');
@@ -93,7 +93,7 @@ describe('Hierarchy Dependencies Parser', () => {
     });
 
     it('should parse types correctly from ProjectNode', () => {
-      const result = parseHierarchyStructure(sampleHierarchy, '/test-repo');
+      const result = parseHierarchyStructure(sampleHierarchy);
       
       // Verify that types are correctly parsed from the hierarchy
       expect(result.projectMap.get(':')?.type).toBe('root');
@@ -125,7 +125,7 @@ describe('Hierarchy Dependencies Parser', () => {
       };
 
       expect(() => {
-        parseHierarchyStructure(hierarchyWithoutRoot, '/test-repo');
+        parseHierarchyStructure(hierarchyWithoutRoot);
       }).toThrow('No root project found in hierarchy. Every project hierarchy must contain exactly one project with type "root".');
     });
   });

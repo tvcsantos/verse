@@ -4,7 +4,7 @@ import { HierarchyModuleManager } from './adapters/hierarchy/hierarchyModuleMana
 import { VersionManager } from './adapters/versionManager.js';
 import { createModuleSystemFactory } from './factories/moduleSystemFactory.js';
 import { Config } from './config/index.js';
-import { AdapterIdentifierFactory, getAdapter } from './adapters/adapterIdentifierFactory.js';
+import { getAdapter } from './adapters/adapterIdentifierFactory.js';
 import { 
   getCurrentBranch,
   isWorkingDirectoryClean
@@ -73,7 +73,7 @@ export class VerseRunner {
     core.info('🏃 Running VERSE semantic evolution pipeline...');
 
     this.adapter = await getAdapter(this.options);
-    
+
     // Initialize module system factory with resolved adapter
     this.moduleSystemFactory = createModuleSystemFactory(this.adapter, this.options.repoRoot);
     

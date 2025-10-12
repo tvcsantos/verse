@@ -10,5 +10,5 @@ export declare function executeGradleHierarchyCommand(projectRoot: string): Prom
 /**
  * Parse the hierarchy structure and extract dependency relationships
  */
-export declare function parseHierarchyStructure(hierarchy: ProjectHierarchy, repoRoot: string): HierarchyParseResult;
+export declare function parseHierarchyStructure(hierarchy: ProjectHierarchy): HierarchyParseResult;
 //# sourceMappingURL=hierarchyDependencies.d.ts.map

@@ -51,7 +51,7 @@ export async function executeGradleHierarchyCommand(projectRoot: string): Promis
 /**
  * Parse the hierarchy structure and extract dependency relationships
  */
-export function parseHierarchyStructure(hierarchy: ProjectHierarchy, repoRoot: string): HierarchyParseResult {
+export function parseHierarchyStructure(hierarchy: ProjectHierarchy): HierarchyParseResult {
   const projectIds = Object.keys(hierarchy);
   const projectMap = new Map<string, ProjectInfo>();
   
