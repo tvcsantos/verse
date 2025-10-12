@@ -138,7 +138,6 @@ This applies `-SNAPSHOT` suffix to **all** module versions, generating versions 
 |-------|-------------|---------|
 | `release-branches` | Comma-separated release branches | `main,master` |
 | `dry-run` | Run without making changes | `false` |
-| `fetch-depth` | Git history depth (0 = full) | `0` |
 | `adapter` | Language adapter to use | `gradle` |
 | `config-path` | Path to config file | `.versioningrc.json` |
 | `create-releases` | Create GitHub Releases | `false` |

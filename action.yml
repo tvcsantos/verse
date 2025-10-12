@@ -10,10 +10,6 @@ inputs:
     description: 'Run without writing or pushing'
     required: false
     default: 'false'
-  fetch-depth:
-    description: 'Git fetch depth (set 0 for full history)'
-    required: false
-    default: '0'
   adapter:
     description: 'Language adapter (e.g., gradle)'
     required: false

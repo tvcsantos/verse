@@ -25,7 +25,6 @@ export type RunnerOptions = {
   readonly dryRun: boolean;
   readonly createReleases: boolean;
   readonly pushTags: boolean;
-  readonly fetchDepth: number;
   readonly prereleaseMode: boolean;
   readonly prereleaseId: string;
   readonly bumpUnchanged: boolean;

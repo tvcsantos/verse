@@ -62,7 +62,6 @@ interface LanguageAdapter {
 |------|--------------|----------|
 | `release-branches` | Comma-separated list of release branches | `main,master` |
 | `dry-run` | Run without writing or pushing | `false` |
-| `fetch-depth` | Git fetch depth (set 0 for full history) | `0` |
 | `adapter` | Language adapter (e.g., `gradle`) | `gradle` |
 | `config-path` | Path to config file | `.versioningrc.json` |
 | `create-releases` | Create GitHub Releases | `false` |

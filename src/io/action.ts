@@ -54,7 +54,6 @@ export async function run(): Promise<void> {
       core.getInput('release-branches') || 'main,master'
     );
     const dryRun = parseBooleanInput(core.getInput('dry-run'));
-    const fetchDepth = parseInt(core.getInput('fetch-depth') || '0', 10);
     const adapter = core.getInput('adapter') || 'gradle';
     const configPath = core.getInput('config-path') || '.versioningrc.json';
     const createReleases = parseBooleanInput(core.getInput('create-releases'));
@@ -107,7 +106,6 @@ export async function run(): Promise<void> {
       dryRun,
       createReleases,
       pushTags,
-      fetchDepth,
       prereleaseMode,
       prereleaseId,
       bumpUnchanged,
