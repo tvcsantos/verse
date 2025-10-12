@@ -101,7 +101,7 @@ export async function run(): Promise<void> {
     const options: RunnerOptions = {
       repoRoot,
       adapter,
-      ...(configPath && { configPath }),
+      configPath,
       releaseBranches,
       dryRun,
       createReleases,
