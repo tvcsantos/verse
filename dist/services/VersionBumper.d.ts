@@ -12,7 +12,7 @@ export type VersionBumperOptions = {
     repoRoot: string;
 };
 export declare class VersionBumper {
-    private options;
+    private readonly options;
     constructor(options: VersionBumperOptions);
     calculateVersionBumps(hierarchyManager: HierarchyModuleManager, moduleCommits: Map<string, CommitInfo[]>, config: Config): Promise<ProcessedModuleChange[]>;
     private calculateInitialBumps;

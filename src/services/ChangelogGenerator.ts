@@ -4,24 +4,22 @@ import { generateChangelogsForModules, generateRootChangelog } from '../changelo
 import { ModuleChangeResult } from './versionApplier.js';
 
 export type ChangelogGeneratorOptions = {
-  updateChangelog: boolean;
+  generateChangelog: boolean;
   repoRoot: string;
   dryRun: boolean;
 };
 
 export class ChangelogGenerator {
-  private options: ChangelogGeneratorOptions;
-
-  constructor(options: ChangelogGeneratorOptions) {
-    this.options = options;
+  
+  constructor(private readonly options: ChangelogGeneratorOptions) {
   }
 
   async generateChangelogs(
     moduleResults: ModuleChangeResult[],
     moduleCommits: Map<string, CommitInfo[]>
   ): Promise<string[]> {
-    if (!this.options.updateChangelog) {
-      core.info('📚 Skipping changelog generation (disabled by update-changelog input)');
+    if (!this.options.generateChangelog) {
+      core.info('📚 Skipping changelog generation (disabled by generate-changelog input)');
       return [];
     }
 

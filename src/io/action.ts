@@ -55,7 +55,7 @@ export async function run(): Promise<void> {
     const timestampVersions = parseBooleanInput(core.getInput('timestamp-versions'));
     const gradleSnapshot = parseBooleanInput(core.getInput('gradle-snapshot'));
     const pushChanges = parseBooleanInput(core.getInput('push-changes'));
-    const updateChangelog = parseBooleanInput(core.getInput('update-changelog') || 'false');
+    const generateChangelog = parseBooleanInput(core.getInput('generate-changelog') || 'false');
 
     // Print cool ASCII art
     core.info('');
@@ -83,7 +83,7 @@ export async function run(): Promise<void> {
     core.info(`Timestamp versions: ${timestampVersions}`);
     core.info(`Gradle snapshot: ${gradleSnapshot}`);
     core.info(`Push changes: ${pushChanges}`);
-    core.info(`Update changelog: ${updateChangelog}`);
+    core.info(`Generate changelog: ${generateChangelog}`);
 
     // Create runner options
     const options: RunnerOptions = {
@@ -100,7 +100,7 @@ export async function run(): Promise<void> {
       timestampVersions,
       gradleSnapshot,
       pushChanges,
-      updateChangelog
+      generateChangelog
     };
 
     // Run VERSE engine

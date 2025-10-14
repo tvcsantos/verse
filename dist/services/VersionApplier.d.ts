@@ -13,8 +13,8 @@ export type ModuleChangeResult = {
     readonly bumpType: BumpType;
 };
 export declare class VersionApplier {
-    private versionManager;
-    private options;
+    private readonly versionManager;
+    private readonly options;
     constructor(versionManager: VersionManager, options: VersionApplierOptions);
     applyVersionChanges(processedModuleChanges: ProcessedModuleChange[]): Promise<ModuleChangeResult[]>;
     private logPlannedChanges;

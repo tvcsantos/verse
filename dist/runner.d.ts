@@ -13,7 +13,7 @@ export type RunnerOptions = {
     readonly timestampVersions: boolean;
     readonly gradleSnapshot: boolean;
     readonly pushChanges: boolean;
-    readonly updateChangelog: boolean;
+    readonly generateChangelog: boolean;
 };
 export type RunnerResult = {
     readonly bumped: boolean;

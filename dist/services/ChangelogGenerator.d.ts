@@ -1,12 +1,12 @@
 import { CommitInfo } from '../adapters/core.js';
 import { ModuleChangeResult } from './versionApplier.js';
 export type ChangelogGeneratorOptions = {
-    updateChangelog: boolean;
+    generateChangelog: boolean;
     repoRoot: string;
     dryRun: boolean;
 };
 export declare class ChangelogGenerator {
-    private options;
+    private readonly options;
     constructor(options: ChangelogGeneratorOptions);
     generateChangelogs(moduleResults: ModuleChangeResult[], moduleCommits: Map<string, CommitInfo[]>): Promise<string[]>;
 }

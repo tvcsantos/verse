@@ -21,10 +21,8 @@ export type VersionBumperOptions = {
 };
 
 export class VersionBumper {
-  private options: VersionBumperOptions;
 
-  constructor(options: VersionBumperOptions) {
-    this.options = options;
+  constructor(private readonly options: VersionBumperOptions) {
   }
 
   async calculateVersionBumps(

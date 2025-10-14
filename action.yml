@@ -50,7 +50,7 @@ inputs:
     description: 'Commit and push version changes and changelogs to remote'
     required: false
     default: 'true'
-  update-changelog:
+  generate-changelog:
     description: 'Generate or update changelog files for changed modules'
     required: false
     default: 'true'

@@ -17,10 +17,8 @@ export type GitOperationsOptions = {
 };
 
 export class GitOperations {
-  private options: GitOperationsOptions;
-
-  constructor(options: GitOperationsOptions) {
-    this.options = options;
+  
+  constructor(private readonly options: GitOperationsOptions) {
   }
 
   async commitAndPushChanges(moduleChangeResults: ModuleChangeResult[]): Promise<void> {

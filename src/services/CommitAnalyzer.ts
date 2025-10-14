@@ -4,10 +4,8 @@ import { HierarchyModuleManager } from '../adapters/hierarchy/hierarchyModuleMan
 import { getCommitsSinceLastTag } from '../git/index.js';
 
 export class CommitAnalyzer {
-  private repoRoot: string;
-
-  constructor(repoRoot: string) {
-    this.repoRoot = repoRoot;
+  
+  constructor(private readonly repoRoot: string) {
   }
 
   async analyzeCommitsSinceLastRelease(hierarchyManager: HierarchyModuleManager): Promise<Map<string, CommitInfo[]>> {

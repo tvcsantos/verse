@@ -18,12 +18,11 @@ export type ModuleChangeResult = {
 };
 
 export class VersionApplier {
-  private versionManager: VersionManager;
-  private options: VersionApplierOptions;
 
-  constructor(versionManager: VersionManager, options: VersionApplierOptions) {
-    this.versionManager = versionManager;
-    this.options = options;
+  constructor(
+    private readonly versionManager: VersionManager,
+    private readonly options: VersionApplierOptions
+  ) {
   }
 
   async applyVersionChanges(processedModuleChanges: ProcessedModuleChange[]): Promise<ModuleChangeResult[]> {

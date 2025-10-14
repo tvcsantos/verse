@@ -6,7 +6,7 @@ export type GitOperationsOptions = {
     dryRun: boolean;
 };
 export declare class GitOperations {
-    private options;
+    private readonly options;
     constructor(options: GitOperationsOptions);
     commitAndPushChanges(moduleChangeResults: ModuleChangeResult[]): Promise<void>;
     createAndPushTags(moduleChangeResults: ModuleChangeResult[]): Promise<string[]>;
