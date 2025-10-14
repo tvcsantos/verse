@@ -27,14 +27,20 @@ gradle.rootProject {
         }
 
         val projectDataProvider = provider {
-            val projectData = linkedMapOf<String, Triple<String, String, String>>()
+            val projectData = linkedMapOf<String, Map<String, String>>()
 
             gradle.rootProject.allprojects.forEach { project ->
                 val relativePath = gradle.rootProject.projectDir.toPath().relativize(project.projectDir.toPath()).toString()
                 val path = if (relativePath.isEmpty()) "." else relativePath
                 val version = project.version.toString()
                 val type = if (project == gradle.rootProject) "root" else "module"
-                projectData[project.path] = Triple(path, version, type)
+
+                projectData[project.path] = mapOf(
+                    "path" to path,
+                    "version" to version,
+                    "type" to type,
+                    "name" to project.name
+                )
             }
             projectData
         }
@@ -44,12 +50,19 @@ gradle.rootProject {
             val projectDataMap = projectDataProvider.get()
 
             val result = hierarchyMap.toSortedMap().mapValues { (projectPath, affectedProjects) ->
-                val (path, version, type) = projectDataMap[projectPath] ?: Triple("unknown", "0.0.0", "module")
+                val projectInfo = projectDataMap[projectPath] ?: mapOf(
+                    "path" to "unknown",
+                    "version" to "0.0.0",
+                    "type" to "module",
+                    "name" to "unknown:unknown"
+                )
+
                 mapOf(
-                    "path" to path,
+                    "path" to projectInfo["path"],
                     "affectedSubprojects" to affectedProjects.toSortedSet(),
-                    "version" to version,
-                    "type" to type
+                    "version" to projectInfo["version"],
+                    "type" to projectInfo["type"],
+                    "name" to projectInfo["name"]
                 )
             }
 
