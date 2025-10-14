@@ -87,7 +87,7 @@ export class VerseRunner {
 
     // Check if we're on a release branch
     const currentBranch = await getCurrentBranch({ cwd: this.options.repoRoot });
-    if (!this.config.releaseBranches.includes(currentBranch)) {
+    if (!this.config.releaseBranches.some(branch => currentBranch.match(branch))) {
       core.info(`⚠️  Not on a release branch (current: ${currentBranch}, release branches: ${this.config.releaseBranches.join(', ')}), skipping versioning`);
       return {
         bumped: false,
