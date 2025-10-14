@@ -1,6 +1,7 @@
 import { CommitInfo } from '../adapters/core.js';
 import { ModuleChangeResult } from './versionApplier.js';
 export type ChangelogGeneratorOptions = {
+    updateChangelog: boolean;
     repoRoot: string;
     dryRun: boolean;
 };

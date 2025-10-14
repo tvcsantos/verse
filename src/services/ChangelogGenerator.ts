@@ -4,6 +4,7 @@ import { generateChangelogsForModules, generateRootChangelog } from '../changelo
 import { ModuleChangeResult } from './versionApplier.js';
 
 export type ChangelogGeneratorOptions = {
+  updateChangelog: boolean;
   repoRoot: string;
   dryRun: boolean;
 };
@@ -19,6 +20,11 @@ export class ChangelogGenerator {
     moduleResults: ModuleChangeResult[],
     moduleCommits: Map<string, CommitInfo[]>
   ): Promise<string[]> {
+    if (!this.options.updateChangelog) {
+      core.info('📚 Skipping changelog generation (disabled by update-changelog input)');
+      return [];
+    }
+
     core.info('📚 Generating changelogs...');
     
     if (this.options.dryRun) {

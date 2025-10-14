@@ -32,6 +32,7 @@ export type RunnerOptions = {
   readonly timestampVersions: boolean;
   readonly gradleSnapshot: boolean;
   readonly pushChanges: boolean;
+  readonly updateChangelog: boolean;
 };
 
 export type RunnerResult = {
@@ -64,6 +65,7 @@ export class VerseRunner {
     this.configurationLoader = new ConfigurationLoader();
     this.commitAnalyzer = new CommitAnalyzer(options.repoRoot);
     this.changelogGenerator = new ChangelogGenerator({
+      updateChangelog: options.updateChangelog,
       repoRoot: options.repoRoot,
       dryRun: options.dryRun
     });
