@@ -3,7 +3,6 @@ export type Config = {
     readonly defaultBump: BumpType;
     readonly commitTypes: Record<string, BumpType | 'ignore'>;
     readonly dependencyRules: DependencyRules;
-    readonly releaseBranches: string[];
     readonly gradle?: GradleConfig;
     readonly nodejs?: NodeJSConfig;
 };

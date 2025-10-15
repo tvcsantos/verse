@@ -85,18 +85,6 @@ export class VerseRunner {
       this.options.repoRoot
     );
 
-    // Check if we're on a release branch
-    const currentBranch = await getCurrentBranch({ cwd: this.options.repoRoot });
-    if (!this.config.releaseBranches.some(branch => currentBranch.match(branch))) {
-      core.info(`⚠️  Not on a release branch (current: ${currentBranch}, release branches: ${this.config.releaseBranches.join(', ')}), skipping versioning`);
-      return {
-        bumped: false,
-        changedModules: [],
-        createdTags: [],
-        changelogPaths: [],
-      };
-    }
-
     // Check if working directory is clean
     if (!this.options.dryRun && !isWorkingDirectoryClean({ cwd: this.options.repoRoot })) {
       throw new Error('Working directory is not clean. Please commit or stash your changes.');

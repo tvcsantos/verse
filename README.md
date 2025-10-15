@@ -47,8 +47,6 @@ jobs:
           echo "Changed: ${{ steps.versioner.outputs['changed-modules'] }}"
 ```
 
-> **📝 Branch Configuration**: VERSE only runs on release branches (default: `main`, `master`). On other branches, it will skip versioning. You can configure which branches are considered release branches in your [configuration file](#configuration) using the `releaseBranches` option.
-
 ### Adapter Auto-Detection
 
 VERSE automatically detects your project type based on the files present in your repository. You don't need to specify the `adapter` input in most cases:
@@ -248,7 +246,6 @@ VERSE will automatically search for configuration in the following order:
 | Option | Type | Description | Default |
 |--------|------|-------------|---------|
 | `defaultBump` | `string` | Default version bump type when conventional commit types don't match | `patch` |
-| `releaseBranches` | `string[]` | Branches on which VERSE performs versioning. On other branches, VERSE will skip versioning | `["main", "master"]` |
 | `commitTypes` | `object` | Maps conventional commit types to version bump types or `ignore` | See examples below |
 | `dependencyRules` | `object` | How to bump dependents when dependencies change | See examples below |
 | `gradle` | `object` | Gradle-specific configuration options | `{}` |
@@ -260,7 +257,6 @@ VERSE will automatically search for configuration in the following order:
 ```json
 {
   "defaultBump": "patch",
-  "releaseBranches": ["main", "master"],
   "commitTypes": {
     "feat": "minor",
     "fix": "patch",
@@ -284,9 +280,6 @@ VERSE will automatically search for configuration in the following order:
 #### YAML Format (`.verserc.yaml`)
 ```yaml
 defaultBump: patch
-releaseBranches:
-  - main
-  - master
 
 commitTypes:
   feat: minor
@@ -311,7 +304,6 @@ gradle:
 ```javascript
 module.exports = {
   defaultBump: 'patch',
-  releaseBranches: ['main', 'master'],
   commitTypes: {
     feat: 'minor',
     fix: 'patch',
@@ -336,7 +328,6 @@ module.exports = {
   "name": "my-project",
   "verse": {
     "defaultBump": "patch",
-    "releaseBranches": ["main", "master"],
     "commitTypes": {
       "feat": "minor",
       "fix": "patch"
