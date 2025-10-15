@@ -18,6 +18,8 @@ export type ProjectNode = {
     readonly version: string;
     /** Project type indicating if it's the root project or a submodule */
     readonly type: 'module' | 'root';
+    /** Whether the version is explicitly declared or inferred by inheritance */
+    readonly declaredVersion: boolean;
 };
 /**
  * Complete project hierarchy dependencies structure
@@ -44,6 +46,8 @@ export type ProjectInfo = {
     readonly affectedProjects: Set<string>;
     /** Current version of the project */
     readonly version: SemVer;
+    /** Whether the version is explicitly declared or inferred by inheritance */
+    readonly declaredVersion: boolean;
 };
 /**
  * Result of parsing the hierarchy dependencies

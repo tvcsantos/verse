@@ -55,18 +55,22 @@ export class VersionApplier {
   private logPlannedChanges(processedModuleChanges: ProcessedModuleChange[]): void {
     core.info(`📈 Planning to update ${processedModuleChanges.length} modules:`);
     for (const change of processedModuleChanges) {
-      const from = formatSemVer(change.fromVersion);
-      const to = change.toVersion;
-      core.info(`  ${change.module.id}: ${from} → ${to} (${change.bumpType}, ${change.reason})`);
+      if (change.module.declaredVersion) {
+        const from = formatSemVer(change.fromVersion);
+        const to = change.toVersion;
+        core.info(`  ${change.module.id}: ${from} → ${to} (${change.bumpType}, ${change.reason})`);
+      }
     }
   }
 
   private async stageVersions(processedModuleChanges: ProcessedModuleChange[]): Promise<void> {
     core.info('✍️ Staging new versions...');
     for (const change of processedModuleChanges) {
-      // Use toVersion directly (now includes all transformations like Gradle snapshots)
-      this.versionManager.updateVersion(change.module.id, change.toVersion);
-      core.info(`  Staged ${change.module.id} to ${change.toVersion}`);
+      if (!change.module.declaredVersion) {
+        // Use toVersion directly (now includes all transformations like Gradle snapshots)
+        this.versionManager.updateVersion(change.module.id, change.toVersion);
+        core.info(`  Staged ${change.module.id} to ${change.toVersion}`);
+      }
     }
   }
 

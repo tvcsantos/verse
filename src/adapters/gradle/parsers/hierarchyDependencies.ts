@@ -67,7 +67,8 @@ export function parseHierarchyStructure(hierarchy: ProjectHierarchy): HierarchyP
       path: projectNode.path,
       type: projectNode.type,
       affectedProjects: new Set(projectNode.affectedSubprojects),
-      version: parseSemVer(projectNode.version)
+      version: parseSemVer(projectNode.version),
+      declaredVersion: projectNode.declaredVersion,
     });
   }
   
