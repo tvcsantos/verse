@@ -66,7 +66,7 @@ export class VersionApplier {
   private async stageVersions(processedModuleChanges: ProcessedModuleChange[]): Promise<void> {
     core.info('✍️ Staging new versions...');
     for (const change of processedModuleChanges) {
-      if (!change.module.declaredVersion) {
+      if (change.module.declaredVersion) {
         // Use toVersion directly (now includes all transformations like Gradle snapshots)
         this.versionManager.updateVersion(change.module.id, change.toVersion);
         core.info(`  Staged ${change.module.id} to ${change.toVersion}`);
