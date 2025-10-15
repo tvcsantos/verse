@@ -1,5 +1,10 @@
 import groovy.json.JsonOutput
 
+fun Project.qualifiedVersionProperty(): String {
+    val name = name.split(':').last()
+    return if (name.isEmpty()) "version" else "${name}.version"
+}
+
 gradle.rootProject {
     tasks.register("printHierarchyDeps") {
         group = "help"
@@ -27,7 +32,7 @@ gradle.rootProject {
         }
 
         val projectDataProvider = provider {
-            val projectData = linkedMapOf<String, Map<String, String>>()
+            val projectData = linkedMapOf<String, Map<String, Any>>()
 
             gradle.rootProject.allprojects.forEach { project ->
                 val relativePath = gradle.rootProject.projectDir.toPath().relativize(project.projectDir.toPath()).toString()
@@ -35,11 +40,15 @@ gradle.rootProject {
                 val version = project.version.toString()
                 val type = if (project == gradle.rootProject) "root" else "module"
 
+                val versionPropertyKey = project.qualifiedVersionProperty()
+                val versionFromProperty = project.findProperty(versionPropertyKey) as? String
+
                 projectData[project.path] = mapOf(
                     "path" to path,
                     "version" to version,
                     "type" to type,
-                    "name" to project.name
+                    "name" to project.name,
+                    "declaredVersion" to (versionFromProperty != null)
                 )
             }
             projectData
@@ -54,7 +63,8 @@ gradle.rootProject {
                     "path" to "unknown",
                     "version" to "0.0.0",
                     "type" to "module",
-                    "name" to "unknown:unknown"
+                    "name" to "unknown:unknown",
+                    "declaredVersion" to false
                 )
 
                 mapOf(
@@ -62,7 +72,8 @@ gradle.rootProject {
                     "affectedSubprojects" to affectedProjects.toSortedSet(),
                     "version" to projectInfo["version"],
                     "type" to projectInfo["type"],
-                    "name" to projectInfo["name"]
+                    "name" to projectInfo["name"],
+                    "declaredVersion" to projectInfo["declaredVersion"]
                 )
             }
 
