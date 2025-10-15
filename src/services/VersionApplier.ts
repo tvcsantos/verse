@@ -15,6 +15,7 @@ export type ModuleChangeResult = {
   readonly from: string;
   readonly to: string;
   readonly bumpType: BumpType;
+  readonly declaredVersion: boolean;
 };
 
 export class VersionApplier {
@@ -49,6 +50,7 @@ export class VersionApplier {
       from: formatSemVer(change.fromVersion),
       to: change.toVersion,
       bumpType: change.bumpType,
+      declaredVersion: change.module.declaredVersion,
     }));
   }
 

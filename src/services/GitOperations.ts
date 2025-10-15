@@ -17,7 +17,7 @@ export type GitOperationsOptions = {
 };
 
 export class GitOperations {
-  
+
   constructor(private readonly options: GitOperationsOptions) {
   }
 
@@ -78,21 +78,25 @@ export class GitOperations {
     if (this.options.dryRun) {
       core.info('🏷️ Dry run mode - tags that would be created:');
       for (const change of moduleChangeResults) {
-        const tagName = `${change.name}@${change.to}`;
-        createdTags.push(tagName);
-        core.info(`  Would create tag: ${tagName}`);
+        if (change.declaredVersion) {
+          const tagName = `${change.name}@${change.to}`;
+          createdTags.push(tagName);
+          core.info(`  Would create tag: ${tagName}`);
+        }
       }
       return createdTags;
     }
 
     core.info('🏷️ Creating tags...');
     for (const change of moduleChangeResults) {
-      const tagName = `${change.name}@${change.to}`;
-      const message = `Release ${change.name} v${change.to}`;
-      
-      createTag(tagName, message, { cwd: this.options.repoRoot });
-      createdTags.push(tagName);
-      core.info(`  Created tag: ${tagName}`);
+      if (change.declaredVersion) {
+        const tagName = `${change.name}@${change.to}`;
+        const message = `Release ${change.name} v${change.to}`;
+        
+        createTag(tagName, message, { cwd: this.options.repoRoot });
+        createdTags.push(tagName);
+        core.info(`  Created tag: ${tagName}`);
+      }
     }
 
     // Push tags

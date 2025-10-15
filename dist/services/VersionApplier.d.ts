@@ -11,6 +11,7 @@ export type ModuleChangeResult = {
     readonly from: string;
     readonly to: string;
     readonly bumpType: BumpType;
+    readonly declaredVersion: boolean;
 };
 export declare class VersionApplier {
     private readonly versionManager;
