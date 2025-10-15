@@ -60,13 +60,7 @@ gradle.rootProject {
             val projectDataMap = projectDataProvider.get()
 
             val result = hierarchyMap.toSortedMap().mapValues { (projectPath, affectedProjects) ->
-                val projectInfo = projectDataMap[projectPath] ?: mapOf(
-                    "path" to "unknown",
-                    "version" to "0.0.0",
-                    "type" to "module",
-                    "name" to "unknown:unknown",
-                    "declaredVersion" to false
-                )
+                val projectInfo = projectDataMap.getValue(projectPath)
 
                 mapOf(
                     "path" to projectInfo["path"],
