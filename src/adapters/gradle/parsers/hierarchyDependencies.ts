@@ -10,7 +10,7 @@ import {
   ProjectInfo
 } from '../../hierarchy.js';
 import { getExecOutput } from '@actions/exec';
-import { parseSemVer } from '../../../semver/index.js';
+import { createInitialVersion, parseSemVer } from '../../../semver/index.js';
 import { fileExists } from '../../../utils/file.js';
 import { getGitHubActionPath } from '../../../io/action.js';
 
@@ -67,7 +67,7 @@ export function parseHierarchyStructure(hierarchy: ProjectHierarchy): HierarchyP
       path: projectNode.path,
       type: projectNode.type,
       affectedProjects: new Set(projectNode.affectedSubprojects),
-      version: parseSemVer(projectNode.version),
+      version: projectNode.version === undefined ? createInitialVersion() : parseSemVer(projectNode.version),
       declaredVersion: projectNode.declaredVersion,
     });
   }

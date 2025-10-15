@@ -15,7 +15,7 @@ export type ProjectNode = {
     /** List of subproject ids that are affected when this project changes */
     readonly affectedSubprojects: string[];
     /** Version of the project */
-    readonly version: string;
+    readonly version?: string;
     /** Project type indicating if it's the root project or a submodule */
     readonly type: 'module' | 'root';
     /** Whether the version is explicitly declared or inferred by inheritance */

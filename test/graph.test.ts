@@ -9,10 +9,10 @@ describe('Cascade Effects', () => {
   const hierarchyResult: HierarchyParseResult = {
     projectIds: ['root', 'core', 'utils', 'api'],
     projectMap: new Map([
-      ['root', { id: 'root', name: 'root', path: '.', type: 'root', affectedProjects: new Set(['core', 'utils', 'api']), version: parseSemVer('1.0.0') }],
-      ['core', { id: 'core', name: 'core', path: 'core', type: 'module', affectedProjects: new Set(['api']), version: parseSemVer('1.0.0') }],
-      ['utils', { id: 'utils', name: 'utils', path: 'utils', type: 'module', affectedProjects: new Set(['core', 'api']), version: parseSemVer('1.0.0') }],
-      ['api', { id: 'api', name: 'api', path: 'api', type: 'module', affectedProjects: new Set(), version: parseSemVer('1.0.0') }],
+      ['root', { id: 'root', name: 'root', path: '.', type: 'root', affectedProjects: new Set(['core', 'utils', 'api']), version: parseSemVer('1.0.0'), declaredVersion: true }],
+      ['core', { id: 'core', name: 'core', path: 'core', type: 'module', affectedProjects: new Set(['api']), version: parseSemVer('1.0.0'), declaredVersion: true }],
+      ['utils', { id: 'utils', name: 'utils', path: 'utils', type: 'module', affectedProjects: new Set(['core', 'api']), version: parseSemVer('1.0.0'), declaredVersion: true }],
+      ['api', { id: 'api', name: 'api', path: 'api', type: 'module', affectedProjects: new Set(), version: parseSemVer('1.0.0'), declaredVersion: true }],
     ]),
     rootProject: 'root',
   };

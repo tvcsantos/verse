@@ -11,35 +11,40 @@ describe('Hierarchy Dependencies Parser', () => {
       path: ".",
       affectedSubprojects: [":base", ":spring", ":spring:core", ":spring:servlet"],
       version: "1.0.0",
-      type: "root"
+      type: "root",
+      declaredVersion: true
     },
     ":base": {
       name: "base",
       path: "base",
       affectedSubprojects: [],
       version: "1.1.0",
-      type: "module"
+      type: "module",
+      declaredVersion: true
     },
     ":spring": {
       name: "spring",
       path: "spring",
       affectedSubprojects: [":spring:core", ":spring:servlet"],
       version: "2.0.0",
-      type: "module"
+      type: "module",
+      declaredVersion: true
     },
     ":spring:core": {
       name: "core",
       path: "spring/core",
       affectedSubprojects: [],
       version: "2.1.0",
-      type: "module"
+      type: "module",
+      declaredVersion: true
     },
     ":spring:servlet": {
       name: "servlet",
       path: "spring/servlet",
       affectedSubprojects: [],
       version: "2.2.0",
-      type: "module"
+      type: "module",
+      declaredVersion: true
     }
   };
 
@@ -113,14 +118,16 @@ describe('Hierarchy Dependencies Parser', () => {
           path: "base",
           affectedSubprojects: [],
           version: "1.1.0",
-          type: "module"
+          type: "module",
+          declaredVersion: true
         },
         ":spring": {
           name: "spring",
           path: "spring",
           affectedSubprojects: [],
           version: "2.0.0",
-          type: "module"
+          type: "module",
+          declaredVersion: true
         }
       };
 

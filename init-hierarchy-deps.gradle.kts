@@ -1,4 +1,5 @@
 import groovy.json.JsonOutput
+import groovy.json.JsonGenerator
 
 fun Project.qualifiedVersionProperty(): String {
     val name = name.split(':').last()
@@ -32,12 +33,12 @@ gradle.rootProject {
         }
 
         val projectDataProvider = provider {
-            val projectData = linkedMapOf<String, Map<String, Any>>()
+            val projectData = linkedMapOf<String, Map<String, Any?>>()
 
             gradle.rootProject.allprojects.forEach { project ->
                 val relativePath = gradle.rootProject.projectDir.toPath().relativize(project.projectDir.toPath()).toString()
                 val path = if (relativePath.isEmpty()) "." else relativePath
-                val version = project.version.toString()
+                val version = if (project.version == "unspecified") null else project.version
                 val type = if (project == gradle.rootProject) "root" else "module"
 
                 val versionPropertyKey = project.qualifiedVersionProperty()
@@ -77,7 +78,11 @@ gradle.rootProject {
                 )
             }
 
-            println(JsonOutput.prettyPrint(JsonOutput.toJson(result)))
+            val generator = JsonGenerator.Options()
+                .excludeNulls()
+                .build()
+
+            println(JsonOutput.prettyPrint(generator.toJson(result)))
         }
     }
 
