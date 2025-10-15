@@ -138,11 +138,15 @@ export async function getLastTagForModule(
         cwd,
         silent: true
       });
+
+      core.info(`Results for pattern ${moduleTagPattern}: ${stdout}`);
       
       if (stdout.trim()) {
         return stdout.trim().split('\n')[0];
       }
     }
+
+    core.info(`No module-specific tags found for ${moduleName}, falling back to general tags.`);
     
     // Fallback to general tags
     try {
