@@ -17,6 +17,7 @@ import { VersionBumper, VersionBumperOptions } from './services/versionBumper.js
 import { VersionApplier, VersionApplierOptions, ModuleChangeResult } from './services/versionApplier.js';
 import { ChangelogGenerator } from './services/changelogGenerator.js';
 import { GitOperations, GitOperationsOptions } from './services/gitOperations.js';
+import { ProjectInfo } from './adapters/hierarchy.js';
 
 export type RunnerOptions = {
   readonly repoRoot: string;
@@ -37,6 +38,7 @@ export type RunnerOptions = {
 
 export type RunnerResult = {
   readonly bumped: boolean;
+  readonly discoveredModules: Array<ProjectInfo>;
   readonly changedModules: Array<ModuleChangeResult>;
   readonly createdTags: string[];
   readonly changelogPaths: string[];
@@ -127,11 +129,14 @@ export class VerseRunner {
       moduleCommits,
       this.config
     );
+
+    const discoveredModules = Array.from(this.hierarchyManager.getModules().values());
     
     if (processedModuleChanges.length === 0) {
       core.info('✨ No version changes needed');
       return {
         bumped: false,
+        discoveredModules,
         changedModules: [],
         createdTags: [],
         changelogPaths: [],
@@ -170,6 +175,7 @@ export class VerseRunner {
 
     return {
       bumped: true,
+      discoveredModules,
       changedModules,
       createdTags,
       changelogPaths,

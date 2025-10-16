@@ -109,6 +109,7 @@ export async function run(): Promise<void> {
 
     // Set outputs
     core.setOutput('bumped', result.bumped.toString());
+    core.setOutput('discovered-modules', JSON.stringify(result.discoveredModules));
     core.setOutput('changed-modules', JSON.stringify(result.changedModules));
     core.setOutput('created-tags', result.createdTags.join(','));
     core.setOutput('changelog-paths', result.changelogPaths.join(','));
