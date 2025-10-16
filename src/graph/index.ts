@@ -1,6 +1,7 @@
 import { ProcessingModuleChange, BumpType } from '../adapters/core.js';
 import { HierarchyModuleManager } from '../adapters/hierarchy/hierarchyModuleManager.js';
 import { maxBumpType } from '../semver/index.js';
+import * as core from '@actions/core';
 
 /**
  * Calculate cascade effects when modules change.
@@ -27,6 +28,7 @@ export function calculateCascadeEffects(
     
     // Skip if already processed or no processing needed or no actual bump
     if (processed.has(currentChange.module.id) || !currentChange.needsProcessing || currentChange.bumpType === 'none') {
+      core.info(`🔄 Skipping module ${currentChange.module.id} - already processed or no processing needed`);
       continue;
     }
     
@@ -35,12 +37,14 @@ export function calculateCascadeEffects(
 
     for (const dependentName of currentModuleInfo.affectedProjects) {
       if (processed.has(dependentName)) {
+        core.info(`🔄 Skipping dependent module ${dependentName} - already processed`);
         continue; // Already processed this module
       }
 
       // Get the dependent module using O(1) lookup
       const existingChange = moduleMap.get(dependentName);
       if (!existingChange) {
+        core.info(`⚠️ Dependent module ${dependentName} not found in module changes list`);
         continue; // Module not found in our module list
       }
 
@@ -48,12 +52,14 @@ export function calculateCascadeEffects(
       const requiredBump = getDependencyBumpType(currentChange.bumpType);
       
       if (requiredBump === 'none') {
+        core.info(`➡️ No cascade bump needed for module ${dependentName} from ${currentChange.module.id}`);
         continue; // No cascade needed
       }
 
       // Update the existing change with cascade information
       const mergedBump = maxBumpType([existingChange.bumpType, requiredBump]);
       if (mergedBump !== existingChange.bumpType || !existingChange.needsProcessing) {
+        core.info(`🔄 Cascading bump for module ${dependentName} from ${existingChange.bumpType} to ${mergedBump} due to ${currentChange.module.id}`);
         // Update the module change in place
         existingChange.bumpType = mergedBump;
         existingChange.reason = 'cascade';
@@ -61,6 +67,8 @@ export function calculateCascadeEffects(
         
         // Add to queue for further processing
         queue.push(existingChange);
+      } else {
+        core.info(`🔄 No changes needed for module ${dependentName} - already at ${existingChange.bumpType}`);
       }
     }
   }
