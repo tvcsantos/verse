@@ -36,6 +36,8 @@ export function calculateCascadeEffects(
     const currentModuleInfo = moduleManager.getModuleInfo(currentChange.module.id);
 
     for (const dependentName of currentModuleInfo.affectedProjects) {
+      core.info(`➡️ Processing dependent module ${dependentName} affected by ${currentChange.module.id} with bump ${currentChange.bumpType}`);
+      
       if (processed.has(dependentName)) {
         core.info(`🔄 Skipping dependent module ${dependentName} - already processed`);
         continue; // Already processed this module
