@@ -64,18 +64,8 @@ export class GitOperations {
 
   async createAndPushTags(moduleChangeResults: ModuleChangeResult[]): Promise<string[]> {
     const createdTags: string[] = [];
-    
-    if (!this.options.pushTags) {
-      core.info('🏷️ Skipping tag creation (disabled by push-tags input)');
-      return createdTags;
-    }
 
-    if (!this.options.pushChanges) {
-      core.info('🏷️ Skipping tag creation and push (disabled by push-changes input)');
-      return createdTags;
-    }
-
-    if (this.options.dryRun) {
+    if (this.options.dryRun || !this.options.pushTags || !this.options.pushChanges) {
       core.info('🏷️ Dry run mode - tags that would be created:');
       for (const change of moduleChangeResults) {
         if (change.declaredVersion) {
