@@ -44,9 +44,9 @@ const DEFAULT_CONFIG: Config = {
     build: 'ignore',
   },
   dependencyRules: {
-    onMajorOfDependency: 'minor',
-    onMinorOfDependency: 'patch',
-    onPatchOfDependency: 'none',
+    onMajorOfDependency: 'major',
+    onMinorOfDependency: 'minor',
+    onPatchOfDependency: 'patch',
   },
   gradle: {
     versionSource: ['gradle.properties'],
