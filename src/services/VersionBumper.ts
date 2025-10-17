@@ -5,7 +5,7 @@ import { HierarchyModuleManager } from '../adapters/hierarchy/hierarchyModuleMan
 import { calculateCascadeEffects } from '../graph/index.js';
 import { calculateBumpFromCommits } from '../utils/commits.js';
 import { bumpSemVer, bumpToPrerelease, formatSemVer, addBuildMetadata, generateTimestampPrereleaseId } from '../semver/index.js';
-import { applyGradleSnapshot } from '../adapters/gradle/gradleUtils.js';
+import { applySnapshotSuffix } from '../adapters/gradle/gradleUtils.js';
 import { getCurrentCommitShortSha } from '../git/index.js';
 import { SemVer } from 'semver';
 
@@ -140,12 +140,12 @@ export class VersionBumper {
       
       // Convert to string version
       change.toVersion = formatSemVer(newVersion);
-      
+
       // Apply Gradle snapshot suffix if enabled (to all modules in gradle mode)
       if (this.options.gradleSnapshot && this.options.adapter === 'gradle') {
         const originalVersion = change.toVersion;
-        change.toVersion = applyGradleSnapshot(change.toVersion);
-        
+        change.toVersion = applySnapshotSuffix(change.toVersion);
+
         // If snapshot suffix was actually added and module wasn't already being processed, mark it for processing
         if (!change.needsProcessing && change.toVersion !== originalVersion) {
           change.needsProcessing = true;

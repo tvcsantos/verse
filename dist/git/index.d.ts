@@ -10,12 +10,21 @@ export type GitOptions = {
 };
 /**
  * Get commits since the last tag for a specific module
+ * @param modulePath Path to the module from repository root
+ * @param moduleName Name of the module
+ * @param moduleType Type of module (root or module)
+ * @param options Git options including cwd
+ * @param excludePaths Paths to exclude from the commit search (e.g., child modules)
  */
-export declare function getCommitsSinceLastTag(modulePath: string, moduleName: string, moduleType: 'root' | 'module', options?: GitOptions): Promise<CommitInfo[]>;
+export declare function getCommitsSinceLastTag(modulePath: string, moduleName: string, moduleType: 'root' | 'module', options?: GitOptions, excludePaths?: string[]): Promise<CommitInfo[]>;
 /**
  * Get commits in a specific range, optionally filtered by path
+ * @param range Git range (e.g., 'tag..HEAD' or empty for all commits)
+ * @param pathFilter Path to include in the search
+ * @param options Git options including cwd
+ * @param excludePaths Paths to exclude from the search (uses git pathspec exclusion)
  */
-export declare function getCommitsInRange(range: string, pathFilter?: string, options?: GitOptions): Promise<CommitInfo[]>;
+export declare function getCommitsInRange(range: string, pathFilter?: string, options?: GitOptions, excludePaths?: string[]): Promise<CommitInfo[]>;
 /**
  * Get the last tag for a specific module
  */

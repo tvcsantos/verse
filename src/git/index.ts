@@ -16,12 +16,18 @@ export type GitOptions = {
 
 /**
  * Get commits since the last tag for a specific module
+ * @param modulePath Path to the module from repository root
+ * @param moduleName Name of the module
+ * @param moduleType Type of module (root or module)
+ * @param options Git options including cwd
+ * @param excludePaths Paths to exclude from the commit search (e.g., child modules)
  */
 export async function getCommitsSinceLastTag(
   modulePath: string,
   moduleName: string,
   moduleType: 'root' | 'module',
-  options: GitOptions = {}
+  options: GitOptions = {},
+  excludePaths: string[] = []
 ): Promise<CommitInfo[]> {
   const cwd = options.cwd || process.cwd();
   
@@ -31,20 +37,25 @@ export async function getCommitsSinceLastTag(
     
     // Get commits since that tag
     const range = lastTag ? `${lastTag}..HEAD` : '';
-    return getCommitsInRange(range, modulePath, { cwd });
+    return getCommitsInRange(range, modulePath, { cwd }, excludePaths);
   } catch (error) {
     // If no tags found, get all commits
-    return getCommitsInRange('', modulePath, { cwd });
+    return getCommitsInRange('', modulePath, { cwd }, excludePaths);
   }
 }
 
 /**
  * Get commits in a specific range, optionally filtered by path
+ * @param range Git range (e.g., 'tag..HEAD' or empty for all commits)
+ * @param pathFilter Path to include in the search
+ * @param options Git options including cwd
+ * @param excludePaths Paths to exclude from the search (uses git pathspec exclusion)
  */
 export async function getCommitsInRange(
   range: string,
   pathFilter?: string,
-  options: GitOptions = {}
+  options: GitOptions = {},
+  excludePaths: string[] = []
 ): Promise<CommitInfo[]> {
   const cwd = options.cwd || process.cwd();
   
@@ -59,6 +70,15 @@ export async function getCommitsInRange(
     // Add path filter if provided and not root
     if (pathFilter && pathFilter !== '.') {
       args.push('--', pathFilter);
+    } else if (excludePaths.length > 0) {
+      // For root path, we still need to add the pathspec separator
+      args.push('--');
+    }
+
+    for (const excludePath of excludePaths) {
+      if (excludePath && excludePath !== '.') {
+        args.push(`:(exclude)${excludePath}`);
+      }
     }
     
     const { stdout } = await getExecOutput('git', args, {
