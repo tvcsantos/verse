@@ -1,4 +1,5 @@
-import { ComposedAdapterIdentifier } from './composedAdapterIdentifier.js';
+import { AdapterMetadata } from './identifier.js';
+import { AdapterIdentifierRegistry } from './adapterIdentifierRegistry.js';
 import { RunnerOptions } from '../runner.js';
 /**
  * Factory for creating adapter identifiers.
@@ -8,15 +9,9 @@ export declare class AdapterIdentifierFactory {
     /**
      * Creates a composed adapter identifier with all available adapters.
      *
-     * @returns ComposedAdapterIdentifier configured with all supported adapters
+     * @returns AdapterIdentifierRegistry configured with all supported adapters
      */
-    static createComposedIdentifier(): ComposedAdapterIdentifier;
-    /**
-     * Gets all supported adapter names.
-     *
-     * @returns Array of supported adapter names
-     */
-    static getSupportedAdapters(): string[];
+    static createAdapterIdentifierRegistry(): AdapterIdentifierRegistry;
 }
-export declare function getAdapter(options: RunnerOptions): Promise<string>;
+export declare function getAdapterMetadata(options: RunnerOptions): Promise<AdapterMetadata>;
 //# sourceMappingURL=adapterIdentifierFactory.d.ts.map

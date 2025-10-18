@@ -3,7 +3,7 @@ import { calculateCascadeEffects } from '../src/graph/index.js';
 import { ProcessingModuleChange, BumpType } from '../src/adapters/core.js';
 import { HierarchyParseResult } from '../src/adapters/hierarchy.js';
 import { parseSemVer } from '../src/semver/index.js';
-import { HierarchyModuleManager } from '../src/adapters/hierarchy/hierarchyModuleManager.js';
+import { ModuleManager } from '../src/adapters/hierarchy/module-manager.js';
 
 describe('Cascade Effects', () => {
   const hierarchyResult: HierarchyParseResult = {
@@ -69,7 +69,7 @@ describe('Cascade Effects', () => {
           }
           return info;
         }
-      } as HierarchyModuleManager;
+      } as ModuleManager;
 
       const getDependencyBumpType = (): BumpType => 'patch';
       

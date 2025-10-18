@@ -14,7 +14,7 @@ This powerful TypeScript GitHub Action harnesses Conventional Commits to automat
 ✅ **Gradle Adapter** - First-class support for Gradle (Groovy & Kotlin DSL)  
 ✅ **Extensible Architecture** - Easy to add adapters for other ecosystems  
 ✅ **Changelog Generation** - Automatic per-module changelog generation  
-✅ **GitHub Integration** - Creates tags and releases automatically  
+✅ **GitHub Integration** - Creates tags automatically  
 ✅ **Pre-release Support** - Generate alpha, beta, rc, or custom pre-release versions
 
 ## Usage
@@ -28,7 +28,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  version-and-release:
+  version:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +38,6 @@ jobs:
         id: versioner
         uses: tvcsantos/verse@v1
         with:
-          create-releases: true
           dry-run: false
           # adapter: gradle  # Optional - VERSE will auto-detect your project type
       - name: Print results
@@ -61,7 +60,6 @@ If auto-detection fails, VERSE will throw an error asking you to explicitly spec
   uses: tvcsantos/verse@v1
   with:
     adapter: gradle  # Required if auto-detection fails
-    create-releases: true
 ```
 
 **Supported Adapters**: `gradle`
@@ -146,7 +144,7 @@ jobs:
         uses: tvcsantos/verse@v1
         with:
           adapter: gradle
-          gradle-snapshot: true
+          append-snapshot: true
 ```
 
 This applies `-SNAPSHOT` suffix to **all** module versions, generating versions like: `1.2.3-SNAPSHOT`, `2.1.0-SNAPSHOT`
@@ -158,14 +156,13 @@ This applies `-SNAPSHOT` suffix to **all** module versions, generating versions 
 | `dry-run` | Run without making changes | `false` |
 | `adapter` | Language adapter to use (auto-detected if not provided) | `auto-detect` |
 | `config-path` | Optional path to specific config file (auto-discovery used if not provided) | `` |
-| `create-releases` | Create GitHub Releases | `false` |
 | `push-tags` | Push tags to remote | `true` |
 | `prerelease-mode` | Generate pre-release versions | `false` |
 | `prerelease-id` | Pre-release identifier | `alpha` |
 | `bump-unchanged` | Bump modules with no changes in prerelease mode | `false` |
 | `add-build-metadata` | Add build metadata with short SHA to all versions | `false` |
 | `timestamp-versions` | Use timestamp-based prerelease identifiers (e.g., alpha.20251008.1530) | `false` |
-| `gradle-snapshot` | Add -SNAPSHOT suffix to all Gradle versions (Gradle convention) | `false` |
+| `append-snapshot` | Add -SNAPSHOT suffix to all versions if supported by adapter (e.g. `gradle`) | `false` |
 | `push-changes` | Commit and push version changes and changelogs to remote | `true` |
 
 > 📖 **Detailed Pre-release Documentation**: See [PRERELEASE.md](PRERELEASE.md) for comprehensive examples and use cases.
@@ -248,7 +245,6 @@ VERSE will automatically search for configuration in the following order:
 | `defaultBump` | `string` | Default version bump type when conventional commit types don't match | `patch` |
 | `commitTypes` | `object` | Maps conventional commit types to version bump types or `ignore` | See examples below |
 | `dependencyRules` | `object` | How to bump dependents when dependencies change | See examples below |
-| `gradle` | `object` | Gradle-specific configuration options | `{}` |
 | `nodejs` | `object` | Node.js-specific configuration options | `{}` |
 
 ### Configuration Examples

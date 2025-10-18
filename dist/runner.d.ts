@@ -1,18 +1,17 @@
-import { ModuleChangeResult } from './services/versionApplier.js';
+import { ModuleChangeResult } from './services/version-applier.js';
 import { ProjectInfo } from './adapters/hierarchy.js';
 export type RunnerOptions = {
     readonly repoRoot: string;
     readonly adapter?: string;
     readonly configPath?: string;
     readonly dryRun: boolean;
-    readonly createReleases: boolean;
     readonly pushTags: boolean;
     readonly prereleaseMode: boolean;
     readonly prereleaseId: string;
     readonly bumpUnchanged: boolean;
     readonly addBuildMetadata: boolean;
     readonly timestampVersions: boolean;
-    readonly gradleSnapshot: boolean;
+    readonly appendSnapshot: boolean;
     readonly pushChanges: boolean;
     readonly generateChangelog: boolean;
 };

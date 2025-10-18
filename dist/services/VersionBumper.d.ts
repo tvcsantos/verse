@@ -1,12 +1,13 @@
 import { ProcessedModuleChange, CommitInfo } from '../adapters/core.js';
 import { Config } from '../config/index.js';
 import { HierarchyModuleManager } from '../adapters/hierarchy/hierarchyModuleManager.js';
+import { AdapterMetadata } from '../adapters/identifier.js';
 export type VersionBumperOptions = {
     prereleaseMode: boolean;
     bumpUnchanged: boolean;
     addBuildMetadata: boolean;
-    gradleSnapshot: boolean;
-    adapter: string;
+    appendSnapshot: boolean;
+    adapter: AdapterMetadata;
     timestampVersions: boolean;
     prereleaseId: string;
     repoRoot: string;

@@ -14,10 +14,6 @@ inputs:
     description: 'Optional path to specific config file (auto-discovery used if not provided)'
     required: false
     default: ''
-  create-releases:
-    description: 'Create GitHub Releases'
-    required: false
-    default: 'false'
   push-tags:
     description: 'Push tags to origin'
     required: false
@@ -42,8 +38,8 @@ inputs:
     description: 'Use timestamp-based prerelease identifiers (requires prerelease-mode)'
     required: false
     default: 'false'
-  gradle-snapshot:
-    description: 'Add -SNAPSHOT suffix to all Gradle versions (Gradle convention)'
+  append-snapshot:
+    description: 'Add -SNAPSHOT suffix to all versions if supported by adapter'
     required: false
     default: 'false'
   push-changes:

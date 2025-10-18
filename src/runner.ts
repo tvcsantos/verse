@@ -1,37 +1,36 @@
 import * as core from '@actions/core';
 import { ModuleSystemFactory } from './adapters/core.js';
-import { HierarchyModuleManager } from './adapters/hierarchy/hierarchyModuleManager.js';
-import { VersionManager } from './adapters/versionManager.js';
-import { createModuleSystemFactory } from './factories/moduleSystemFactory.js';
+import { ModuleManager } from './adapters/hierarchy/module-manager.js';
+import { VersionManager } from './adapters/version-manager.js';
+import { createModuleSystemFactory } from './factories/module-system-factory.js';
 import { Config } from './config/index.js';
-import { getAdapter } from './adapters/adapterIdentifierFactory.js';
 import { 
-  getCurrentBranch,
   isWorkingDirectoryClean
 } from './git/index.js';
 
 // Service imports
-import { ConfigurationLoader } from './services/configurationLoader.js';
-import { CommitAnalyzer } from './services/commitAnalyzer.js';
-import { VersionBumper, VersionBumperOptions } from './services/versionBumper.js';
-import { VersionApplier, VersionApplierOptions, ModuleChangeResult } from './services/versionApplier.js';
-import { ChangelogGenerator } from './services/changelogGenerator.js';
-import { GitOperations, GitOperationsOptions } from './services/gitOperations.js';
+import { ConfigurationLoader } from './services/configuration-loader.js';
+import { CommitAnalyzer } from './services/commit-analyzer.js';
+import { VersionBumper, VersionBumperOptions } from './services/version-bumper.js';
+import { VersionApplier, VersionApplierOptions, ModuleChangeResult } from './services/version-applier.js';
+import { ChangelogGenerator } from './services/changelog-generator.js';
+import { GitOperations, GitOperationsOptions } from './services/git-operations.js';
 import { ProjectInfo } from './adapters/hierarchy.js';
+import { AdapterMetadata } from './adapters/identifier.js';
+import { getAdapterMetadata } from './adapters/adapter-identifier-factory.js';
 
 export type RunnerOptions = {
   readonly repoRoot: string;
   readonly adapter?: string;
   readonly configPath?: string;
   readonly dryRun: boolean;
-  readonly createReleases: boolean;
   readonly pushTags: boolean;
   readonly prereleaseMode: boolean;
   readonly prereleaseId: string;
   readonly bumpUnchanged: boolean;
   readonly addBuildMetadata: boolean;
   readonly timestampVersions: boolean;
-  readonly gradleSnapshot: boolean;
+  readonly appendSnapshot: boolean;
   readonly pushChanges: boolean;
   readonly generateChangelog: boolean;
 };
@@ -46,10 +45,10 @@ export type RunnerResult = {
 
 export class VerseRunner {
   private moduleSystemFactory!: ModuleSystemFactory; // Will be initialized in run()
-  private hierarchyManager!: HierarchyModuleManager; // Will be initialized in run()
+  private hierarchyManager!: ModuleManager; // Will be initialized in run()
   private versionManager!: VersionManager; // Will be initialized in run()
   private config!: Config; // Will be initialized in run()
-  private adapter!: string; // Will be initialized in run()
+  private adapter!: AdapterMetadata; // Will be initialized in run()
   private options: RunnerOptions;
 
   // Service instances
@@ -76,10 +75,10 @@ export class VerseRunner {
   async run(): Promise<RunnerResult> {
     core.info('🏃 Running VERSE semantic evolution pipeline...');
 
-    this.adapter = await getAdapter(this.options);
+    this.adapter = await getAdapterMetadata(this.options);
 
     // Initialize module system factory with resolved adapter
-    this.moduleSystemFactory = createModuleSystemFactory(this.adapter, this.options.repoRoot);
+    this.moduleSystemFactory = createModuleSystemFactory(this.adapter.id, this.options.repoRoot);
     
     // Load configuration
     this.config = await this.configurationLoader.loadConfiguration(
@@ -115,7 +114,7 @@ export class VerseRunner {
       prereleaseMode: this.options.prereleaseMode,
       bumpUnchanged: this.options.bumpUnchanged,
       addBuildMetadata: this.options.addBuildMetadata,
-      gradleSnapshot: this.options.gradleSnapshot,
+      appendSnapshot: this.options.appendSnapshot,
       adapter: this.adapter,
       timestampVersions: this.options.timestampVersions,
       prereleaseId: this.options.prereleaseId,

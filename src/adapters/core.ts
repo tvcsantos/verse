@@ -1,6 +1,6 @@
 import { SemVer } from "semver";
 import { ProjectInfo } from "./hierarchy.js";
-import { HierarchyModuleManager } from "./hierarchy/hierarchyModuleManager.js";
+import { ModuleManager } from "./hierarchy/module-manager.js";
 
 export type ProcessingModuleChange = {
   readonly module: ProjectInfo;
@@ -51,7 +51,7 @@ export interface ModuleDetector {
   /**
    * Detect all modules in the repository and return a hierarchy manager
    */
-  detect(): Promise<HierarchyModuleManager>;
+  detect(): Promise<ModuleManager>;
 }
 
 /**

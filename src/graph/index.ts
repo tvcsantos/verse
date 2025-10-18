@@ -1,5 +1,5 @@
 import { ProcessingModuleChange, BumpType } from '../adapters/core.js';
-import { HierarchyModuleManager } from '../adapters/hierarchy/hierarchyModuleManager.js';
+import { ModuleManager } from '../adapters/hierarchy/module-manager.js';
 import { maxBumpType } from '../semver/index.js';
 import * as core from '@actions/core';
 
@@ -8,7 +8,7 @@ import * as core from '@actions/core';
  * Modifies the input array in place and returns all modules with cascade effects applied.
  */
 export function calculateCascadeEffects(
-  moduleManager: HierarchyModuleManager,
+  moduleManager: ModuleManager,
   allModuleChanges: ProcessingModuleChange[],
   getDependencyBumpType: (dependencyBump: BumpType) => BumpType
 ): ProcessingModuleChange[] {

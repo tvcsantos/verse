@@ -19,9 +19,6 @@ module.exports = {
     onMinorOfDependency: 'patch',
     onPatchOfDependency: 'none'
   },
-  gradle: {
-    versionSource: ['gradle.properties']
-  },
   nodejs: {
     versionSource: ['package.json'],
     updatePackageLock: true

@@ -46,14 +46,13 @@ export async function run(): Promise<void> {
     const dryRun = parseBooleanInput(core.getInput('dry-run'));
     const adapter = core.getInput('adapter') || undefined;
     const configPath = core.getInput('config-path') || undefined;
-    const createReleases = parseBooleanInput(core.getInput('create-releases'));
     const pushTags = parseBooleanInput(core.getInput('push-tags'));
     const prereleaseMode = parseBooleanInput(core.getInput('prerelease-mode'));
     const prereleaseId = core.getInput('prerelease-id') || 'alpha';
     const bumpUnchanged = parseBooleanInput(core.getInput('bump-unchanged'));
     const addBuildMetadata = parseBooleanInput(core.getInput('add-build-metadata'));
     const timestampVersions = parseBooleanInput(core.getInput('timestamp-versions'));
-    const gradleSnapshot = parseBooleanInput(core.getInput('gradle-snapshot'));
+    const appendSnapshot = parseBooleanInput(core.getInput('append-snapshot'));
     const pushChanges = parseBooleanInput(core.getInput('push-changes'));
     const generateChangelog = parseBooleanInput(core.getInput('generate-changelog') || 'false');
 
@@ -81,7 +80,7 @@ export async function run(): Promise<void> {
     }
     core.info(`Add build metadata: ${addBuildMetadata}`);
     core.info(`Timestamp versions: ${timestampVersions}`);
-    core.info(`Gradle snapshot: ${gradleSnapshot}`);
+    core.info(`Append snapshot: ${appendSnapshot}`);
     core.info(`Push changes: ${pushChanges}`);
     core.info(`Generate changelog: ${generateChangelog}`);
 
@@ -91,14 +90,13 @@ export async function run(): Promise<void> {
       adapter,
       configPath,
       dryRun,
-      createReleases,
       pushTags,
       prereleaseMode,
       prereleaseId,
       bumpUnchanged,
       addBuildMetadata,
       timestampVersions,
-      gradleSnapshot,
+      appendSnapshot,
       pushChanges,
       generateChangelog
     };
@@ -144,18 +142,6 @@ export async function run(): Promise<void> {
       core.debug(`Stack trace: ${error.stack}`);
     }
   }
-}
-
-/**
- * Handle GitHub Releases creation (if enabled)
- */
-async function createGitHubReleases(
-  changedModules: Array<{ name: string; from: string; to: string }>,
-  changelogPaths: string[]
-): Promise<void> {
-  // Implementation would use @actions/github to create releases
-  // This is a placeholder for the actual implementation
-  core.info('📦 GitHub Releases creation not yet implemented');
 }
 
 // Auto-run if this is the main module

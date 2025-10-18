@@ -1,13 +1,24 @@
+export type AdapterMetadata = {
+  readonly id: string;
+  readonly capabilities: {
+    readonly supportsSnapshots: boolean;
+  }
+};
+
 /**
  * Interface for adapter identification.
  * Each adapter should implement this interface to provide auto-discovery capabilities.
  */
 export interface AdapterIdentifier {
   /**
-   * Identifies if the current project is compatible with this adapter.
-   * 
-   * @param projectRoot - The root directory of the project to analyze
-   * @returns The adapter name if this adapter is applicable, null otherwise
+   * The metadata for this adapter.
    */
-  identify(projectRoot: string): Promise<string | null>;
+  readonly metadata: AdapterMetadata;
+
+  /**
+   * Checks if the given project is accepted by this adapter.
+   * @param projectRoot - The root directory of the project to analyze
+   * @returns True if the project is accepted, false otherwise
+   */
+  accept(projectRoot: string): Promise<boolean>;
 }

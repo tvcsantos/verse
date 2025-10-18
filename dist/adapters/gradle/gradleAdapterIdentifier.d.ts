@@ -4,6 +4,12 @@ import { AdapterIdentifier } from '../identifier.js';
  * Identifies Gradle projects by looking for build.gradle(.kts) and settings.gradle(.kts) files.
  */
 export declare class GradleAdapterIdentifier implements AdapterIdentifier {
-    identify(projectRoot: string): Promise<string | null>;
+    readonly metadata: {
+        id: string;
+        capabilities: {
+            supportsSnapshots: boolean;
+        };
+    };
+    accept(projectRoot: string): Promise<boolean>;
 }
 //# sourceMappingURL=gradleAdapterIdentifier.d.ts.map
