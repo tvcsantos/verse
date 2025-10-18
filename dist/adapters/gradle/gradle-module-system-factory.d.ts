@@ -1,4 +1,6 @@
-import { ModuleSystemFactory, ModuleDetector, VersionUpdateStrategy } from '../core.js';
+import { ModuleSystemFactory } from "../module-system-factory.js";
+import { ModuleDetector } from "../module-detector.js";
+import { VersionUpdateStrategy } from "../version-update-strategy.js";
 /**
  * Factory for creating Gradle-specific module system components.
  * Handles instantiation of Gradle module detector and version update strategy.

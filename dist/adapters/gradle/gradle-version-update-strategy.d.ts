@@ -1,4 +1,4 @@
-import { VersionUpdateStrategy } from '../core.js';
+import { VersionUpdateStrategy } from "../version-update-strategy.js";
 /**
  * Gradle-specific implementation for version update operations.
  * Handles gradle.properties file updates and module ID to property name conversion.

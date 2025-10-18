@@ -1,5 +1,5 @@
-import { ModuleDetector } from '../core.js';
-import { ModuleManager } from '../hierarchy/module-manager.js';
+import { ModuleDetector } from "../module-detector.js";
+import { ModuleManager } from '../module-manager.js';
 export declare class GradleModuleDetector implements ModuleDetector {
     readonly repoRoot: string;
     constructor(repoRoot: string);

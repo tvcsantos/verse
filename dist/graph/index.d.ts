@@ -1,5 +1,5 @@
 import { ProcessingModuleChange, BumpType } from '../adapters/core.js';
-import { ModuleManager } from '../adapters/hierarchy/module-manager.js';
+import { ModuleManager } from '../adapters/module-manager.js';
 /**
  * Calculate cascade effects when modules change.
  * Modifies the input array in place and returns all modules with cascade effects applied.

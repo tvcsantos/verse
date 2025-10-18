@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { VersionUpdateStrategy } from '../core.js';
+import { VersionUpdateStrategy } from "../version-update-strategy.js";
 import { moduleIdToVersionPropertyName } from './gradle-properties.js';
 import { upsertProperties } from '../../utils/properties.js';
 import { GRADLE_PROPERTIES_FILE } from './constants.js';

@@ -1,6 +1,6 @@
 import { SemVer } from 'semver';
-import { ModuleManager } from './hierarchy/module-manager.js';
-import { VersionUpdateStrategy } from './core.js';
+import { ModuleManager } from './module-manager.js';
+import { VersionUpdateStrategy } from "./version-update-strategy.js";
 import { formatSemVer } from '../semver/index.js';
 
 /**

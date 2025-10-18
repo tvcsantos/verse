@@ -1,6 +1,6 @@
 import { SemVer } from 'semver';
-import { ModuleManager } from './hierarchy/module-manager.js';
-import { VersionUpdateStrategy } from './core.js';
+import { ModuleManager } from './module-manager.js';
+import { VersionUpdateStrategy } from "./version-update-strategy.js";
 /**
  * Generic version management implementation that uses strategy pattern for build-system specific operations.
  * Uses an in-memory store to batch updates and commit them all at once.

@@ -1,6 +1,6 @@
-import { ModuleDetector } from '../core.js';
+import { ModuleDetector } from "../module-detector.js";
 import { ProjectHierarchy } from '../hierarchy.js';
-import { ModuleManager } from '../hierarchy/module-manager.js';
+import { ModuleManager } from '../module-manager.js';
 import { 
   executeGradleHierarchyCommand,
   parseHierarchyStructure 

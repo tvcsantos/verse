@@ -1,4 +1,6 @@
-import { ModuleSystemFactory, ModuleDetector, VersionUpdateStrategy } from '../core.js';
+import { ModuleSystemFactory } from "../module-system-factory.js";
+import { ModuleDetector } from "../module-detector.js";
+import { VersionUpdateStrategy } from "../version-update-strategy.js";
 import { GradleModuleDetector } from './gradle-module-detector.js';
 import { GradleVersionUpdateStrategy } from './gradle-version-update-strategy.js';
 

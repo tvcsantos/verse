@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CommitAnalyzer } from '../src/services/commit-analyzer.js';
-import { ModuleManager } from '../src/adapters/hierarchy/module-manager.js';
+import { ModuleManager } from '../src/adapters/module-manager.js';
 import { HierarchyParseResult, ProjectInfo } from '../src/adapters/hierarchy.js';
 import * as gitIndex from '../src/git/index.js';
 import { parseSemVer } from '../src/semver/index.js';

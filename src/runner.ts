@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
-import { ModuleSystemFactory } from './adapters/core.js';
-import { ModuleManager } from './adapters/hierarchy/module-manager.js';
+import { ModuleSystemFactory } from "./adapters/module-system-factory.js";
+import { ModuleManager } from './adapters/module-manager.js';
 import { VersionManager } from './adapters/version-manager.js';
 import { createModuleSystemFactory } from './factories/module-system-factory.js';
 import { Config } from './config/index.js';

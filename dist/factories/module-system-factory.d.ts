@@ -1,4 +1,4 @@
-import { ModuleSystemFactory } from '../adapters/core.js';
+import { ModuleSystemFactory } from "../adapters/module-system-factory.js";
 /**
  * Create a module system factory for the specified adapter.
  * This is a template factory method that instantiates the correct factory based on adapter name.

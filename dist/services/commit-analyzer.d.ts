@@ -1,5 +1,5 @@
 import { CommitInfo } from '../adapters/core.js';
-import { ModuleManager } from '../adapters/hierarchy/module-manager.js';
+import { ModuleManager } from '../adapters/module-manager.js';
 export declare class CommitAnalyzer {
     private readonly repoRoot;
     constructor(repoRoot: string);

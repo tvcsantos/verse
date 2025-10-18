@@ -3,7 +3,7 @@ import { calculateCascadeEffects } from '../src/graph/index.js';
 import { ProcessingModuleChange, BumpType } from '../src/adapters/core.js';
 import { HierarchyParseResult } from '../src/adapters/hierarchy.js';
 import { parseSemVer } from '../src/semver/index.js';
-import { ModuleManager } from '../src/adapters/hierarchy/module-manager.js';
+import { ModuleManager } from '../src/adapters/module-manager.js';
 
 describe('Cascade Effects', () => {
   const hierarchyResult: HierarchyParseResult = {

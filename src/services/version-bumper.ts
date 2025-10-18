@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { ProcessingModuleChange, ProcessedModuleChange, BumpType, ChangeReason, CommitInfo } from '../adapters/core.js';
 import { Config, getDependencyBumpType } from '../config/index.js';
-import { ModuleManager } from '../adapters/hierarchy/module-manager.js';
+import { ModuleManager } from '../adapters/module-manager.js';
 import { calculateCascadeEffects } from '../graph/index.js';
 import { calculateBumpFromCommits } from '../utils/commits.js';
 import { bumpSemVer, bumpToPrerelease, formatSemVer, addBuildMetadata, generateTimestampPrereleaseId } from '../semver/index.js';

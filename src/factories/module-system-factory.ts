@@ -1,4 +1,4 @@
-import { ModuleSystemFactory } from '../adapters/core.js';
+import { ModuleSystemFactory } from "../adapters/module-system-factory.js";
 import { GradleModuleSystemFactory } from '../adapters/gradle/gradle-module-system-factory.js';
 
 /**

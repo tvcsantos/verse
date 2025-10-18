@@ -1,6 +1,6 @@
 import { ProcessedModuleChange, CommitInfo } from '../adapters/core.js';
 import { Config } from '../config/index.js';
-import { ModuleManager } from '../adapters/hierarchy/module-manager.js';
+import { ModuleManager } from '../adapters/module-manager.js';
 import { AdapterMetadata } from '../adapters/identifier.js';
 export type VersionBumperOptions = {
     prereleaseMode: boolean;
